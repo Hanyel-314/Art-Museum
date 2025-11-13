@@ -1,0 +1,312 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    background: #000;
+}
+
+#museum-canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    cursor: default;
+}
+
+/* Loading Screen */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.5s ease-out;
+}
+
+#loading-screen.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    text-align: center;
+    color: #fff;
+}
+
+.loading-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    font-weight: 300;
+    letter-spacing: 2px;
+}
+
+.loading-bar {
+    width: 300px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.loading-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #d4af37, #f4e5c2);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.loading-text {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* UI Overlay */
+#ui-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Tooltip */
+.tooltip {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 1.2rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    pointer-events: none;
+    animation: pulse 2s infinite;
+    border: 2px solid rgba(212, 175, 55, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Back Button */
+.nav-button {
+    position: absolute;
+    bottom: 2rem;
+    left: 2rem;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: 2px solid rgba(212, 175, 55, 0.6);
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    pointer-events: all;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.nav-button:hover {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: #d4af37;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.back-arrow {
+    font-size: 1.2rem;
+}
+
+/* Artwork Info Panel */
+.info-panel {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    width: 350px;
+    max-height: 80vh;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    pointer-events: all;
+    overflow-y: auto;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.info-panel h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: #d4af37;
+    font-weight: 400;
+}
+
+.info-panel .artwork-artist {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+    font-style: italic;
+    opacity: 0.9;
+}
+
+.info-panel .artwork-year,
+.info-panel .artwork-medium {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-bottom: 0.3rem;
+}
+
+.info-panel .artwork-description {
+    margin-top: 1rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    opacity: 0.85;
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+    pointer-events: all;
+}
+
+.close-btn:hover {
+    opacity: 1;
+}
+
+.interaction-hint {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.interaction-hint p {
+    font-size: 0.85rem;
+    opacity: 0.6;
+    margin: 0.3rem 0;
+}
+
+/* Wall Hints */
+.wall-hint {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    pointer-events: none;
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    animation: fadeSlide 0.5s ease-out;
+}
+
+#wall-hint-left {
+    left: 2rem;
+}
+
+#wall-hint-right {
+    right: 2rem;
+}
+
+@keyframes fadeSlide {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Cursor States */
+.clickable {
+    cursor: pointer !important;
+}
+
+.grabbing {
+    cursor: grabbing !important;
+}
+
+.grab {
+    cursor: grab !important;
+}
+
+/* Scrollbar Styling */
+.info-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.info-panel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.info-panel::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.5);
+    border-radius: 3px;
+}
+
+.info-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.7);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .info-panel {
+        width: calc(100% - 2rem);
+        right: 1rem;
+        top: 1rem;
+        max-height: 60vh;
+    }
+
+    .nav-button {
+        bottom: 1rem;
+        left: 1rem;
+    }
+
+    .tooltip {
+        font-size: 1rem;
+        padding: 1rem 1.5rem;
+    }
+}
