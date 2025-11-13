@@ -156,16 +156,11 @@ function init() {
     animate();
     console.log('✅ Animation started');
 
-    // Hide loading screen
-    setTimeout(() => {
-        console.log('👋 Hiding loading screen');
-        loadingScreen.classList.add('fade-out');
-        setTimeout(() => {
-            loadingScreen.style.display = 'none';
-            entranceTooltip.classList.remove('hidden');
-            console.log('🎉 Museum ready! Click the door to enter.');
-        }, 500);
-    }, 1000);
+    // Hide loading screen immediately
+    console.log('👋 Hiding loading screen');
+    loadingScreen.style.display = 'none';
+    entranceTooltip.classList.remove('hidden');
+    console.log('🎉 Museum ready! Click the door to enter.');
 }
 
 // ============================================
