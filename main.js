@@ -91,6 +91,8 @@ let wallHintLeft, wallHintRight;
 // ============================================
 
 function init() {
+    console.log('Initializing Art Museum...');
+
     // Get DOM elements
     loadingScreen = document.getElementById('loading-screen');
     entranceTooltip = document.getElementById('entrance-tooltip');
@@ -99,10 +101,14 @@ function init() {
     wallHintLeft = document.getElementById('wall-hint-left');
     wallHintRight = document.getElementById('wall-hint-right');
 
+    console.log('DOM elements loaded');
+
     // Setup Three.js
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x1a1a1a);
     scene.fog = new THREE.Fog(0x1a1a1a, 10, 50);
+
+    console.log('Scene created');
 
     // Camera
     camera = new THREE.PerspectiveCamera(
@@ -132,8 +138,11 @@ function init() {
     mouse = new THREE.Vector2();
 
     // Create scenes
+    console.log('Creating entrance scene...');
     createEntranceScene();
+    console.log('Creating corridor scene...');
     createCorridorScene();
+    console.log('Scenes created successfully');
 
     // Event listeners
     window.addEventListener('resize', onWindowResize);
@@ -144,17 +153,22 @@ function init() {
     canvas.addEventListener('wheel', onMouseWheel);
     backButton.addEventListener('click', onBackButtonClick);
 
+    console.log('Event listeners attached');
+
     // Start animation loop
     animate();
+    console.log('Animation loop started');
 
     // Hide loading screen
     setTimeout(() => {
+        console.log('Hiding loading screen');
         loadingScreen.classList.add('fade-out');
         setTimeout(() => {
             loadingScreen.style.display = 'none';
             if (currentScene === SCENES.ENTRANCE) {
                 entranceTooltip.classList.remove('hidden');
             }
+            console.log('Museum ready!');
         }, 500);
     }, 1500);
 }
@@ -311,9 +325,8 @@ function createCorridorScene() {
 
     // Ceiling lights
     for (let i = -8; i <= 8; i += 4) {
-        const ceilingLight = new THREE.RectAreaLight(0xffffee, 3, 2, 2);
+        const ceilingLight = new THREE.PointLight(0xffffee, 1.5, 15);
         ceilingLight.position.set(0, 3.9, i);
-        ceilingLight.rotation.x = -Math.PI / 2;
         corridorGroup.add(ceilingLight);
     }
 
