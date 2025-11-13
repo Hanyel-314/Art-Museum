@@ -106,7 +106,7 @@ function init() {
 
     // Setup Three.js
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x2a2a2a);
+    scene.background = new THREE.Color(0x87ceeb); // Sky blue background
 
     // Camera
     camera = new THREE.PerspectiveCamera(
@@ -170,40 +170,44 @@ function init() {
 function createEntranceScene() {
     // Simple ground
     const groundGeometry = new THREE.PlaneGeometry(20, 20);
-    const groundMaterial = new THREE.MeshStandardMaterial({
-        color: 0x666666,
-        roughness: 0.8
+    const groundMaterial = new THREE.MeshBasicMaterial({
+        color: 0x90EE90  // Light green
     });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = 0;
     scene.add(ground);
 
-    // Large clickable door
+    // Large clickable door - using MeshBasicMaterial so it doesn't need lights
     const doorGeometry = new THREE.BoxGeometry(3, 4, 0.3);
-    const doorMaterial = new THREE.MeshStandardMaterial({
-        color: 0x8B4513,
-        roughness: 0.7
+    const doorMaterial = new THREE.MeshBasicMaterial({
+        color: 0x8B4513  // Brown
     });
     doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
     doorMesh.position.set(0, 2, 0);
     doorMesh.userData.isDoor = true;
     scene.add(doorMesh);
 
-    // Door frame highlight
+    // Door frame highlight - bright yellow outline
     const edgesGeometry = new THREE.EdgesGeometry(doorGeometry);
     const edgesMaterial = new THREE.LineBasicMaterial({
-        color: 0xFFD700,
-        linewidth: 2
+        color: 0xFFFF00,
+        linewidth: 3
     });
     const edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
     doorMesh.add(edges);
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // Add bright ambient light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
     scene.add(ambientLight);
 
-    const frontLight = new THREE.PointLight(0xffffff, 1, 20);
+    // Strong directional light
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    dirLight.position.set(5, 10, 7);
+    scene.add(dirLight);
+
+    // Front light to illuminate door
+    const frontLight = new THREE.PointLight(0xffffff, 2, 30);
     frontLight.position.set(0, 3, 5);
     scene.add(frontLight);
 
@@ -214,27 +218,25 @@ function createCorridorScene() {
     corridorGroup = new THREE.Group();
     corridorGroup.visible = false;
 
-    // Floor
+    // Floor - using BasicMaterial for brightness
     const floorGeometry = new THREE.PlaneGeometry(10, 30);
-    const floorMaterial = new THREE.MeshStandardMaterial({
-        color: 0xf0f0f0,
-        roughness: 0.3
+    const floorMaterial = new THREE.MeshBasicMaterial({
+        color: 0xf5f5f5
     });
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.rotation.x = -Math.PI / 2;
     corridorGroup.add(floor);
 
     // Ceiling
-    const ceiling = new THREE.Mesh(floorGeometry, new THREE.MeshStandardMaterial({ color: 0xe0e0e0 }));
+    const ceiling = new THREE.Mesh(floorGeometry, new THREE.MeshBasicMaterial({ color: 0xffffff }));
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.y = 4;
     corridorGroup.add(ceiling);
 
     // Left wall
     const wallGeometry = new THREE.PlaneGeometry(30, 4);
-    const wallMaterial = new THREE.MeshStandardMaterial({
-        color: 0xdedede,
-        roughness: 0.9
+    const wallMaterial = new THREE.MeshBasicMaterial({
+        color: 0xe8e8e8
     });
 
     const leftWall = new THREE.Mesh(wallGeometry, wallMaterial);
