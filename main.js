@@ -1,33 +1,35 @@
 import * as THREE from 'three';
 
 // ============================================
-// ART MUSEUM - COMPLETE REBUILD
+// INTERACTIVE ART MUSEUM - MASTER BUILD
 // ============================================
 
-console.log('🎨 Art Museum Starting...');
+console.log('🎨 Art Museum Initializing...');
 
-// Global variables
+// ============================================
+// GLOBAL STATE
+// ============================================
+
 let scene, camera, renderer;
 let currentView = 'ENTRANCE'; // ENTRANCE, CORRIDOR, WALL_LEFT, WALL_RIGHT, DETAIL
 let isAnimating = false;
 let selectedPainting = null;
 
-// Objects
-let entranceDoor;
-let leftDoor, rightDoor; // Individual door panels
-let corridorObjects = [];
+// Scene Objects
+let entranceDoor, leftDoorPanel, rightDoorPanel;
+let corridorGroup = [];
 let leftWallPaintings = [];
 let rightWallPaintings = [];
 let detailArtwork = null;
 let hoveredPainting = null;
 
-// Mouse interaction
+// Interaction
 let raycaster, mouse;
 let isDragging = false;
 let previousMouse = { x: 0, y: 0 };
 
 // Lighting
-let detailKeyLight, detailRimLight;
+let detailKeyLight, detailRimLight, detailFillLight;
 
 // UI Elements
 const tooltip = document.getElementById('entrance-tooltip');
@@ -36,32 +38,35 @@ const infoPanel = document.getElementById('artwork-info');
 const wallHintLeft = document.getElementById('wall-hint-left');
 const wallHintRight = document.getElementById('wall-hint-right');
 
-// Painting data
-const PAINTINGS = {
+// ============================================
+// ARTWORK DATA
+// ============================================
+
+const ARTWORKS = {
     left: [
         {
             title: "Starry Night",
             artist: "Vincent van Gogh",
             year: "1889",
             medium: "Oil on canvas",
-            description: "An iconic post-impressionist masterpiece depicting a swirling night sky.",
-            color: 0x4169E1
+            description: "A swirling, dreamlike vision of the night sky over a French village, expressing deep emotion through bold brushstrokes and vivid colors.",
+            color: 0x2B4C7E
         },
         {
-            title: "The Great Wave",
+            title: "The Great Wave off Kanagawa",
             artist: "Katsushika Hokusai",
             year: "1831",
             medium: "Woodblock print",
-            description: "A stunning Japanese woodblock print featuring an enormous wave.",
-            color: 0x1E90FF
+            description: "An iconic Japanese ukiyo-e print depicting a towering wave threatening boats near Mount Fuji, symbolizing nature's power.",
+            color: 0x1E5A8E
         },
         {
             title: "Girl with a Pearl Earring",
             artist: "Johannes Vermeer",
             year: "1665",
             medium: "Oil on canvas",
-            description: "Often called the 'Mona Lisa of the North.'",
-            color: 0xDAA520
+            description: "Often called the 'Mona Lisa of the North,' this intimate portrait captures a girl's enigmatic gaze and luminous pearl earring.",
+            color: 0x8B7355
         }
     ],
     right: [
@@ -69,25 +74,25 @@ const PAINTINGS = {
             title: "The Scream",
             artist: "Edvard Munch",
             year: "1893",
-            medium: "Oil and pastel",
-            description: "An expressionist masterpiece depicting universal anxiety.",
-            color: 0xFF6347
+            medium: "Oil, tempera, pastel",
+            description: "An expressionist icon depicting overwhelming anxiety, with a distorted figure against a blood-red sky, representing universal human anguish.",
+            color: 0xD94A3D
         },
         {
             title: "The Birth of Venus",
             artist: "Sandro Botticelli",
             year: "1485",
             medium: "Tempera on canvas",
-            description: "Venus emerging from the sea as a fully grown woman.",
-            color: 0xFFB6C1
+            description: "A Renaissance masterpiece showing Venus emerging from the sea as a fully grown woman, embodying classical beauty and mythological grace.",
+            color: 0xE8C4A8
         },
         {
             title: "The Kiss",
             artist: "Gustav Klimt",
             year: "1908",
             medium: "Oil and gold leaf",
-            description: "A couple embraced in elaborate golden robes.",
-            color: 0xFFD700
+            description: "A shimmering Art Nouveau work depicting lovers embraced in ornate golden robes, symbolizing passion, intimacy, and eternal love.",
+            color: 0xD4AF37
         }
     ]
 };
@@ -97,45 +102,64 @@ const PAINTINGS = {
 // ============================================
 
 function init() {
-    console.log('Initializing Three.js...');
+    console.log('Initializing Three.js scene...');
 
-    // Scene
+    // Scene setup
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x87CEEB); // Sky blue
+    scene.background = new THREE.Color(0xE8DCC8); // Warm exterior color
+    scene.fog = new THREE.Fog(0xE8DCC8, 10, 50);
 
-    // Camera
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 1.6, 5);
-    camera.lookAt(0, 2, 0); // Look at the door
+    // Camera setup
+    camera = new THREE.PerspectiveCamera(
+        65,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+    );
+    camera.position.set(0, 1.7, 8);
+    camera.lookAt(0, 2.5, 0);
 
-    // Renderer
+    // Renderer setup
     const canvas = document.getElementById('museum-canvas');
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        powerPreference: 'high-performance'
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
 
-    // Raycaster for mouse interaction
+    // Raycaster for interactions
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
 
-    // Lights - bright for visibility
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+    // Lighting - warm outdoor lighting
+    const ambientLight = new THREE.AmbientLight(0xFFF8E7, 0.6);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 10, 7);
-    scene.add(directionalLight);
+    const sunLight = new THREE.DirectionalLight(0xFFE4B5, 1.2);
+    sunLight.position.set(10, 15, 10);
+    sunLight.castShadow = true;
+    sunLight.shadow.camera.left = -15;
+    sunLight.shadow.camera.right = 15;
+    sunLight.shadow.camera.top = 15;
+    sunLight.shadow.camera.bottom = -15;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    scene.add(sunLight);
 
-    // Additional front light for entrance
-    const frontLight = new THREE.DirectionalLight(0xffffff, 0.6);
-    frontLight.position.set(0, 3, 10);
-    scene.add(frontLight);
+    // Additional fill light
+    const fillLight = new THREE.DirectionalLight(0xB0C4DE, 0.4);
+    fillLight.position.set(-5, 5, 5);
+    scene.add(fillLight);
 
     console.log('✅ Scene, camera, renderer ready');
 
-    // Create all scenes
+    // Build all scenes
     createEntranceScene();
     createCorridorScene();
 
@@ -145,352 +169,393 @@ function init() {
     canvas.addEventListener('click', onClick);
     canvas.addEventListener('mousedown', onMouseDown);
     canvas.addEventListener('mouseup', onMouseUp);
+    canvas.addEventListener('mouseleave', onMouseLeave);
     canvas.addEventListener('wheel', onWheel, { passive: false });
     backBtn.addEventListener('click', goBack);
 
     console.log('✅ Event listeners attached');
 
     // Hide loading screen
-    document.getElementById('loading-screen').style.display = 'none';
-    tooltip.classList.remove('hidden');
+    setTimeout(() => {
+        document.getElementById('loading-screen').style.display = 'none';
+        tooltip.classList.remove('hidden');
+    }, 500);
 
-    // Start animation
+    // Start render loop
     animate();
     console.log('🎉 Museum ready!');
 }
 
 // ============================================
-// SCENE CREATION
+// SCENE CONSTRUCTION
 // ============================================
 
 function createEntranceScene() {
-    console.log('Creating entrance...');
+    console.log('Creating entrance scene...');
 
-    // Ground - stone pathway
-    const ground = new THREE.Mesh(
-        new THREE.PlaneGeometry(20, 20),
-        new THREE.MeshLambertMaterial({ color: 0xC0C0C0 })
-    );
+    // Stone ground
+    const groundGeo = new THREE.PlaneGeometry(30, 30);
+    const groundMat = new THREE.MeshStandardMaterial({
+        color: 0xC8B8A0,
+        roughness: 0.8,
+        metalness: 0.1
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = 0;
+    ground.receiveShadow = true;
     scene.add(ground);
 
-    // Museum facade wall
-    const facade = new THREE.Mesh(
-        new THREE.BoxGeometry(8, 6, 0.5),
-        new THREE.MeshLambertMaterial({ color: 0xD3D3D3 })
-    );
-    facade.position.set(0, 3, -0.3);
+    // Museum facade - stone wall
+    const facadeGeo = new THREE.BoxGeometry(12, 8, 0.8);
+    const facadeMat = new THREE.MeshStandardMaterial({
+        color: 0xD9CEB8,
+        roughness: 0.9,
+        metalness: 0
+    });
+    const facade = new THREE.Mesh(facadeGeo, facadeMat);
+    facade.position.set(0, 4, -0.5);
+    facade.receiveShadow = true;
+    facade.castShadow = true;
     scene.add(facade);
 
-    // Door container
+    // Pillars
+    createPillar(-4, 0, 0);
+    createPillar(4, 0, 0);
+
+    // Museum door assembly
     entranceDoor = new THREE.Group();
-    entranceDoor.position.z = 0;
+    entranceDoor.position.set(0, 0, 0);
 
-    // LEFT DOOR PANEL
-    leftDoor = new THREE.Group();
-    leftDoor.position.set(-0.05, 2, 0);
-
-    const leftPanel = new THREE.Mesh(
-        new THREE.BoxGeometry(1.5, 4, 0.15),
-        new THREE.MeshLambertMaterial({
-            color: 0x8B4513  // Brighter brown for visibility
-        })
-    );
-    leftPanel.position.x = -0.75;
-    leftPanel.userData.clickable = true;
-    leftPanel.userData.type = 'door';
-    leftDoor.add(leftPanel);
-
-    // Left door brass handle
-    const leftHandle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.03, 0.03, 0.3, 8),
-        new THREE.MeshLambertMaterial({
-            color: 0xFFD700  // Bright gold
-        })
-    );
-    leftHandle.rotation.z = Math.PI / 2;
-    leftHandle.position.set(-0.3, 0, 0.1);
-    leftDoor.add(leftHandle);
-
-    // RIGHT DOOR PANEL
-    rightDoor = new THREE.Group();
-    rightDoor.position.set(0.05, 2, 0);
-
-    const rightPanel = new THREE.Mesh(
-        new THREE.BoxGeometry(1.5, 4, 0.15),
-        new THREE.MeshLambertMaterial({
-            color: 0x8B4513  // Brighter brown for visibility
-        })
-    );
-    rightPanel.position.x = 0.75;
-    rightPanel.userData.clickable = true;
-    rightPanel.userData.type = 'door';
-    rightDoor.add(rightPanel);
-
-    // Right door brass handle
-    const rightHandle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.03, 0.03, 0.3, 8),
-        new THREE.MeshLambertMaterial({
-            color: 0xFFD700  // Bright gold
-        })
-    );
-    rightHandle.rotation.z = Math.PI / 2;
-    rightHandle.position.set(0.3, 0, 0.1);
-    rightDoor.add(rightHandle);
-
-    entranceDoor.add(leftDoor);
-    entranceDoor.add(rightDoor);
-
-    // Door frame
-    const frameMat = new THREE.MeshLambertMaterial({
-        color: 0xFFD700  // Bright gold
+    // Door frame - ornate brass
+    const frameGeo = new THREE.BoxGeometry(4.5, 5.5, 0.3);
+    const frameMat = new THREE.MeshStandardMaterial({
+        color: 0xB8860B,
+        roughness: 0.3,
+        metalness: 0.7
     });
+    const doorFrame = new THREE.Mesh(frameGeo, frameMat);
+    doorFrame.position.set(0, 2.75, 0.05);
+    entranceDoor.add(doorFrame);
 
-    const topFrame = new THREE.Mesh(
-        new THREE.BoxGeometry(3.3, 0.15, 0.2),
-        frameMat
-    );
-    topFrame.position.set(0, 4.05, 0.05);
-    entranceDoor.add(topFrame);
+    // Left door panel
+    leftDoorPanel = new THREE.Group();
+    leftDoorPanel.position.set(-0.1, 2.5, 0);
 
+    const leftDoorGeo = new THREE.BoxGeometry(2, 5, 0.15);
+    const doorMat = new THREE.MeshStandardMaterial({
+        color: 0x3E2723,
+        roughness: 0.6,
+        metalness: 0.1
+    });
+    const leftDoor = new THREE.Mesh(leftDoorGeo, doorMat);
+    leftDoor.position.x = -1;
+    leftDoor.castShadow = true;
+    leftDoor.userData.clickable = true;
+    leftDoor.userData.type = 'door';
+    leftDoorPanel.add(leftDoor);
+
+    // Left handle
+    const handleGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.4, 12);
+    const handleMat = new THREE.MeshStandardMaterial({
+        color: 0xFFD700,
+        roughness: 0.2,
+        metalness: 0.9
+    });
+    const leftHandle = new THREE.Mesh(handleGeo, handleMat);
+    leftHandle.rotation.z = Math.PI / 2;
+    leftHandle.position.set(-0.4, 0, 0.12);
+    leftDoorPanel.add(leftHandle);
+
+    // Right door panel
+    rightDoorPanel = new THREE.Group();
+    rightDoorPanel.position.set(0.1, 2.5, 0);
+
+    const rightDoor = new THREE.Mesh(leftDoorGeo, doorMat);
+    rightDoor.position.x = 1;
+    rightDoor.castShadow = true;
+    rightDoor.userData.clickable = true;
+    rightDoor.userData.type = 'door';
+    rightDoorPanel.add(rightDoor);
+
+    const rightHandle = new THREE.Mesh(handleGeo, handleMat);
+    rightHandle.rotation.z = Math.PI / 2;
+    rightHandle.position.set(0.4, 0, 0.12);
+    rightDoorPanel.add(rightHandle);
+
+    entranceDoor.add(leftDoorPanel);
+    entranceDoor.add(rightDoorPanel);
     scene.add(entranceDoor);
-    console.log('✅ Entrance created with dual doors');
+
+    console.log('✅ Entrance created');
+}
+
+function createPillar(x, y, z) {
+    const pillarGeo = new THREE.CylinderGeometry(0.4, 0.5, 8, 16);
+    const pillarMat = new THREE.MeshStandardMaterial({
+        color: 0xD9CEB8,
+        roughness: 0.8,
+        metalness: 0.1
+    });
+    const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+    pillar.position.set(x, y + 4, z);
+    pillar.castShadow = true;
+    pillar.receiveShadow = true;
+    scene.add(pillar);
+
+    // Capital
+    const capGeo = new THREE.CylinderGeometry(0.6, 0.45, 0.4, 16);
+    const cap = new THREE.Mesh(capGeo, pillarMat);
+    cap.position.set(x, y + 8.2, z);
+    scene.add(cap);
 }
 
 function createCorridorScene() {
     console.log('Creating corridor...');
 
-    // Floor - marble appearance
-    const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(10, 30),
-        new THREE.MeshStandardMaterial({
-            color: 0xF0F0F0,
-            roughness: 0.3,
-            metalness: 0.2
-        })
-    );
+    // Marble floor - long corridor
+    const floorGeo = new THREE.PlaneGeometry(10, 25);
+    const floorMat = new THREE.MeshStandardMaterial({
+        color: 0xF5F5F0,
+        roughness: 0.2,
+        metalness: 0.3
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
-    floor.visible = false;
     floor.receiveShadow = true;
-    corridorObjects.push(floor);
+    floor.visible = false;
+    corridorGroup.push(floor);
     scene.add(floor);
 
     // Ceiling
-    const ceiling = new THREE.Mesh(
-        new THREE.PlaneGeometry(10, 30),
-        new THREE.MeshStandardMaterial({
-            color: 0xFAFAFA,
-            roughness: 0.8,
-            metalness: 0
-        })
-    );
+    const ceilingGeo = new THREE.PlaneGeometry(10, 25);
+    const ceilingMat = new THREE.MeshStandardMaterial({
+        color: 0xFFFFF8,
+        roughness: 0.9,
+        metalness: 0
+    });
+    const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
     ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.y = 4;
+    ceiling.position.y = 4.5;
     ceiling.visible = false;
-    corridorObjects.push(ceiling);
+    corridorGroup.push(ceiling);
     scene.add(ceiling);
 
-    // Recessed ceiling lights (warm 3500-4000K)
-    const warmColor = 0xFFF4E6; // Warm white
-    for (let i = -12; i <= 12; i += 6) {
-        const ceilingLight = new THREE.PointLight(warmColor, 0.4, 8);
-        ceilingLight.position.set(0, 3.8, i);
+    // Recessed ceiling lights (warm museum lighting 3500-4200K)
+    const warmLightColor = 0xFFF4E0;
+    for (let i = -10; i <= 10; i += 5) {
+        const ceilingLight = new THREE.SpotLight(warmLightColor, 0.6, 12, Math.PI / 6, 0.4);
+        ceilingLight.position.set(0, 4.3, i);
+        ceilingLight.target.position.set(0, 0, i);
         ceilingLight.visible = false;
-        corridorObjects.push(ceilingLight);
+        ceilingLight.castShadow = true;
+        corridorGroup.push(ceilingLight);
+        corridorGroup.push(ceilingLight.target);
         scene.add(ceilingLight);
+        scene.add(ceilingLight.target);
     }
 
+    // Walls - sandstone texture
+    const wallMat = new THREE.MeshStandardMaterial({
+        color: 0xE8DCC8,
+        roughness: 0.95,
+        metalness: 0
+    });
+
     // Left wall
-    const leftWall = new THREE.Mesh(
-        new THREE.PlaneGeometry(30, 4),
-        new THREE.MeshStandardMaterial({
-            color: 0xE5E5E5,
-            roughness: 0.9,
-            metalness: 0
-        })
-    );
+    const leftWallGeo = new THREE.PlaneGeometry(25, 4.5);
+    const leftWall = new THREE.Mesh(leftWallGeo, wallMat);
     leftWall.rotation.y = Math.PI / 2;
-    leftWall.position.set(-5, 2, 0);
+    leftWall.position.set(-5, 2.25, 0);
+    leftWall.receiveShadow = true;
     leftWall.userData.clickable = true;
     leftWall.userData.type = 'wall';
     leftWall.userData.side = 'left';
     leftWall.visible = false;
-    leftWall.receiveShadow = true;
-    corridorObjects.push(leftWall);
+    corridorGroup.push(leftWall);
     scene.add(leftWall);
 
     // Right wall
-    const rightWall = new THREE.Mesh(
-        new THREE.PlaneGeometry(30, 4),
-        new THREE.MeshStandardMaterial({
-            color: 0xE5E5E5,
-            roughness: 0.9,
-            metalness: 0
-        })
-    );
+    const rightWall = new THREE.Mesh(leftWallGeo, wallMat);
     rightWall.rotation.y = -Math.PI / 2;
-    rightWall.position.set(5, 2, 0);
+    rightWall.position.set(5, 2.25, 0);
+    rightWall.receiveShadow = true;
     rightWall.userData.clickable = true;
     rightWall.userData.type = 'wall';
     rightWall.userData.side = 'right';
     rightWall.visible = false;
-    rightWall.receiveShadow = true;
-    corridorObjects.push(rightWall);
+    corridorGroup.push(rightWall);
     scene.add(rightWall);
 
-    // Create paintings
-    createPaintings('left', -4.9, leftWallPaintings);
-    createPaintings('right', 4.9, rightWallPaintings);
+    // Create paintings on both walls
+    createWallPaintings('left', -4.85, leftWallPaintings);
+    createWallPaintings('right', 4.85, rightWallPaintings);
 
-    console.log('✅ Corridor created with enhanced lighting');
+    console.log('✅ Corridor created');
 }
 
-function createPaintings(side, xPos, storageArray) {
-    const paintings = PAINTINGS[side];
+function createWallPaintings(side, xPos, storageArray) {
+    const artworks = ARTWORKS[side];
     const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
 
-    paintings.forEach((data, i) => {
-        const zPos = -8 + (i * 8);
-        const frame = new THREE.Group();
-        frame.position.set(xPos, 2, zPos);
-        frame.rotation.y = rotation;
-        frame.visible = false;
-        frame.userData.clickable = true;
-        frame.userData.type = 'painting';
-        frame.userData.data = data;
-        frame.userData.originalScale = 1;
+    artworks.forEach((artwork, i) => {
+        const zPos = -8 + (i * 8); // Spacing: -8, 0, 8
 
-        // Canvas
-        const canvas = new THREE.Mesh(
-            new THREE.PlaneGeometry(2, 2),
-            new THREE.MeshStandardMaterial({
-                color: data.color,
-                roughness: 0.8,
-                metalness: 0
-            })
-        );
-        canvas.position.z = 0.02;
-        frame.add(canvas);
+        const paintingGroup = new THREE.Group();
+        paintingGroup.position.set(xPos, 2.2, zPos);
+        paintingGroup.rotation.y = rotation;
+        paintingGroup.visible = false;
+        paintingGroup.userData.clickable = true;
+        paintingGroup.userData.type = 'painting';
+        paintingGroup.userData.data = artwork;
+        paintingGroup.userData.side = side;
 
-        // Anti-reflection glass
-        const glass = new THREE.Mesh(
-            new THREE.PlaneGeometry(2.1, 2.1),
-            new THREE.MeshStandardMaterial({
-                color: 0xFFFFFF,
-                transparent: true,
-                opacity: 0.05,
-                roughness: 0.1,
-                metalness: 0.1,
-                envMapIntensity: 0.3
-            })
-        );
-        glass.position.z = 0.06;
-        frame.add(glass);
-
-        // Dark wood frame
-        const frameThickness = 0.1;
-        const frameMat = new THREE.MeshStandardMaterial({
-            color: 0x3D2817,
+        // Canvas with artwork color
+        const canvasGeo = new THREE.PlaneGeometry(2.2, 2.2);
+        const canvasMat = new THREE.MeshStandardMaterial({
+            color: artwork.color,
             roughness: 0.7,
             metalness: 0
         });
+        const canvas = new THREE.Mesh(canvasGeo, canvasMat);
+        canvas.position.z = 0.03;
+        paintingGroup.add(canvas);
 
-        const top = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.1, frameThickness), frameMat);
-        top.position.y = 1.05;
-        frame.add(top);
+        // Anti-reflection glass
+        const glassGeo = new THREE.PlaneGeometry(2.3, 2.3);
+        const glassMat = new THREE.MeshStandardMaterial({
+            color: 0xFFFFFF,
+            transparent: true,
+            opacity: 0.08,
+            roughness: 0.05,
+            metalness: 0.2,
+            envMapIntensity: 0.5
+        });
+        const glass = new THREE.Mesh(glassGeo, glassMat);
+        glass.position.z = 0.08;
+        paintingGroup.add(glass);
 
-        const bottom = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.1, frameThickness), frameMat);
-        bottom.position.y = -1.05;
-        frame.add(bottom);
+        // Dark walnut wood frame
+        const frameColor = 0x3E2723;
+        const frameMat = new THREE.MeshStandardMaterial({
+            color: frameColor,
+            roughness: 0.6,
+            metalness: 0.1
+        });
 
-        const left = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2, frameThickness), frameMat);
-        left.position.x = -1.05;
-        frame.add(left);
+        const frameThick = 0.12;
+        const frameDepth = 0.15;
 
-        const right = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2, frameThickness), frameMat);
-        right.position.x = 1.05;
-        frame.add(right);
+        // Top frame
+        const topFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(2.5, frameThick, frameDepth),
+            frameMat
+        );
+        topFrame.position.y = 1.19;
+        paintingGroup.add(topFrame);
+
+        // Bottom frame
+        const bottomFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(2.5, frameThick, frameDepth),
+            frameMat
+        );
+        bottomFrame.position.y = -1.19;
+        paintingGroup.add(bottomFrame);
+
+        // Left frame
+        const leftFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(frameThick, 2.26, frameDepth),
+            frameMat
+        );
+        leftFrame.position.x = -1.19;
+        paintingGroup.add(leftFrame);
+
+        // Right frame
+        const rightFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(frameThick, 2.26, frameDepth),
+            frameMat
+        );
+        rightFrame.position.x = 1.19;
+        paintingGroup.add(rightFrame);
 
         // Brass plaque
-        const plaque = new THREE.Mesh(
-            new THREE.BoxGeometry(0.8, 0.1, 0.02),
-            new THREE.MeshStandardMaterial({
-                color: 0xB8860B,
-                metalness: 0.8,
-                roughness: 0.2
-            })
-        );
-        plaque.position.set(0, -1.3, 0.05);
-        frame.add(plaque);
+        const plaqueGeo = new THREE.BoxGeometry(1.0, 0.15, 0.03);
+        const plaqueMat = new THREE.MeshStandardMaterial({
+            color: 0xB8860B,
+            roughness: 0.3,
+            metalness: 0.8
+        });
+        const plaque = new THREE.Mesh(plaqueGeo, plaqueMat);
+        plaque.position.set(0, -1.45, 0.08);
+        paintingGroup.add(plaque);
 
-        // Wall wash light above painting
-        const wallLight = new THREE.SpotLight(0xFFF4E6, 0.6, 5, Math.PI / 6, 0.3);
-        wallLight.position.copy(frame.position);
-        wallLight.position.y += 1.5;
-        wallLight.position.z += (side === 'left' ? -0.3 : 0.3);
-        wallLight.target.position.copy(frame.position);
-        wallLight.visible = false;
-        wallLight.castShadow = true;
-        corridorObjects.push(wallLight);
-        corridorObjects.push(wallLight.target);
-        scene.add(wallLight);
-        scene.add(wallLight.target);
+        // Dedicated wash light for this painting
+        const washLight = new THREE.SpotLight(0xFFF4E0, 0.8, 6, Math.PI / 8, 0.5);
+        washLight.position.copy(paintingGroup.position);
+        washLight.position.y += 1.8;
+        washLight.position.z += (side === 'left' ? -0.2 : 0.2);
+        washLight.target.position.copy(paintingGroup.position);
+        washLight.visible = false;
+        washLight.castShadow = true;
+        corridorGroup.push(washLight);
+        corridorGroup.push(washLight.target);
+        scene.add(washLight);
+        scene.add(washLight.target);
 
-        storageArray.push(frame);
-        corridorObjects.push(frame);
-        scene.add(frame);
+        storageArray.push(paintingGroup);
+        corridorGroup.push(paintingGroup);
+        scene.add(paintingGroup);
     });
 
-    console.log(`✅ Created ${paintings.length} paintings on ${side} with glass & lighting`);
+    console.log(`✅ Created ${artworks.length} paintings on ${side} wall`);
 }
 
 // ============================================
 // VIEW TRANSITIONS
 // ============================================
 
-function enterCorridor() {
+function enterMuseum() {
     if (isAnimating) return;
     isAnimating = true;
-    console.log('🚶 Entering corridor...');
+    console.log('🚶 Entering museum...');
 
     tooltip.classList.add('hidden');
 
     // Animate doors opening
-    const doorDuration = 1200;
-    const doorStartTime = Date.now();
+    const duration = 1500;
+    const startTime = Date.now();
 
-    function animateDoors() {
-        const elapsed = Date.now() - doorStartTime;
-        const t = Math.min(elapsed / doorDuration, 1);
-        const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    function animateDoorOpen() {
+        const elapsed = Date.now() - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const eased = easeInOutCubic(t);
 
-        // Left door swings left
-        leftDoor.rotation.y = eased * Math.PI / 2;
-        // Right door swings right
-        rightDoor.rotation.y = -eased * Math.PI / 2;
+        // Doors swing outward
+        leftDoorPanel.rotation.y = eased * (Math.PI / 2.2);
+        rightDoorPanel.rotation.y = -eased * (Math.PI / 2.2);
 
         if (t < 1) {
-            requestAnimationFrame(animateDoors);
+            requestAnimationFrame(animateDoorOpen);
         } else {
-            // Doors fully open, hide entrance and show corridor
+            // Hide entrance, show corridor
             setTimeout(() => {
                 entranceDoor.visible = false;
-                corridorObjects.forEach(obj => obj.visible = true);
-            }, 200);
+                scene.background = new THREE.Color(0xFAF8F3);
+                scene.fog = new THREE.Fog(0xFAF8F3, 15, 30);
+                corridorGroup.forEach(obj => obj.visible = true);
+            }, 300);
         }
     }
 
-    animateDoors();
+    animateDoorOpen();
 
-    // Move camera through doorway
+    // Move camera into corridor
     setTimeout(() => {
         animateCamera(
             camera.position.clone(),
-            new THREE.Vector3(0, 1.6, 0),
+            new THREE.Vector3(0, 1.7, 0),
             camera.rotation.clone(),
             new THREE.Euler(0, 0, 0),
-            1000,
+            1200,
             () => {
                 currentView = 'CORRIDOR';
                 isAnimating = false;
@@ -498,29 +563,31 @@ function enterCorridor() {
                 backBtn.textContent = '← Exit Museum';
                 wallHintLeft.classList.remove('hidden');
                 wallHintRight.classList.remove('hidden');
-                console.log('✅ In corridor');
+                console.log('✅ Inside corridor');
             }
         );
-    }, 400);
+    }, 500);
 }
 
 function viewWall(side) {
     if (isAnimating) return;
     isAnimating = true;
-    console.log(`👀 Viewing ${side} wall...`);
+    console.log(`👁️ Viewing ${side} wall...`);
 
     wallHintLeft.classList.add('hidden');
     wallHintRight.classList.add('hidden');
 
-    const targetRot = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-    const targetPos = side === 'left' ? new THREE.Vector3(-3, 1.6, 0) : new THREE.Vector3(3, 1.6, 0);
+    const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+    const targetPos = side === 'left'
+        ? new THREE.Vector3(-2.5, 1.7, 0)
+        : new THREE.Vector3(2.5, 1.7, 0);
 
     animateCamera(
         camera.position.clone(),
         targetPos,
         camera.rotation.clone(),
-        new THREE.Euler(0, targetRot, 0),
-        800,
+        new THREE.Euler(0, targetAngle, 0),
+        1000,
         () => {
             currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
             isAnimating = false;
@@ -530,150 +597,195 @@ function viewWall(side) {
     );
 }
 
-function viewPaintingDetail(paintingData) {
+function viewArtworkDetail(artworkData) {
     if (isAnimating) return;
     isAnimating = true;
-    console.log(`🖼️ Viewing: ${paintingData.title}`);
+    console.log(`🖼️ Viewing: ${artworkData.title}`);
 
     // Hide corridor
-    corridorObjects.forEach(obj => obj.visible = false);
+    corridorGroup.forEach(obj => obj.visible = false);
 
-    // Dim background
-    scene.background = new THREE.Color(0x1a1a1a);
+    // Darken background
+    scene.background = new THREE.Color(0x1C1C1C);
+    scene.fog = new THREE.Fog(0x1C1C1C, 8, 15);
 
-    // Create detail view
+    // Create detailed 3D artwork
     detailArtwork = new THREE.Group();
-    detailArtwork.position.set(0, 1.6, 0);
+    detailArtwork.position.set(0, 1.7, 0);
 
-    const size = 3;
-    const depth = 0.15;
+    const size = 3.5;
+    const canvasDepth = 0.12;
 
-    // Canvas front (painted surface)
-    const front = new THREE.Mesh(
-        new THREE.PlaneGeometry(size, size),
-        new THREE.MeshStandardMaterial({
-            color: paintingData.color,
-            roughness: 0.7,
-            metalness: 0
-        })
-    );
-    front.position.z = depth / 2;
+    // Front canvas (painted surface)
+    const frontGeo = new THREE.PlaneGeometry(size, size);
+    const frontMat = new THREE.MeshStandardMaterial({
+        color: artworkData.color,
+        roughness: 0.75,
+        metalness: 0
+    });
+    const front = new THREE.Mesh(frontGeo, frontMat);
+    front.position.z = canvasDepth / 2;
     detailArtwork.add(front);
 
-    // Canvas edges (for 3D depth)
+    // Canvas edges (visible when rotated)
+    const edgeColor = 0xE8E0D0;
     const edgeMat = new THREE.MeshStandardMaterial({
-        color: 0xE8E0D5,
+        color: edgeColor,
         roughness: 0.9
     });
 
-    const topEdge = new THREE.Mesh(new THREE.BoxGeometry(size, 0.02, depth), edgeMat);
-    topEdge.position.set(0, size / 2, 0);
+    const topEdge = new THREE.Mesh(
+        new THREE.BoxGeometry(size, 0.02, canvasDepth),
+        edgeMat
+    );
+    topEdge.position.y = size / 2;
     detailArtwork.add(topEdge);
 
-    const bottomEdge = new THREE.Mesh(new THREE.BoxGeometry(size, 0.02, depth), edgeMat);
-    bottomEdge.position.set(0, -size / 2, 0);
+    const bottomEdge = new THREE.Mesh(
+        new THREE.BoxGeometry(size, 0.02, canvasDepth),
+        edgeMat
+    );
+    bottomEdge.position.y = -size / 2;
     detailArtwork.add(bottomEdge);
 
-    const leftEdge = new THREE.Mesh(new THREE.BoxGeometry(0.02, size, depth), edgeMat);
-    leftEdge.position.set(-size / 2, 0, 0);
+    const leftEdge = new THREE.Mesh(
+        new THREE.BoxGeometry(0.02, size, canvasDepth),
+        edgeMat
+    );
+    leftEdge.position.x = -size / 2;
     detailArtwork.add(leftEdge);
 
-    const rightEdge = new THREE.Mesh(new THREE.BoxGeometry(0.02, size, depth), edgeMat);
-    rightEdge.position.set(size / 2, 0, 0);
+    const rightEdge = new THREE.Mesh(
+        new THREE.BoxGeometry(0.02, size, canvasDepth),
+        edgeMat
+    );
+    rightEdge.position.x = size / 2;
     detailArtwork.add(rightEdge);
 
-    // Back of canvas (raw linen texture)
-    const back = new THREE.Mesh(
-        new THREE.PlaneGeometry(size - 0.1, size - 0.1),
-        new THREE.MeshStandardMaterial({
-            color: 0xD4C5A9,
-            roughness: 0.95
-        })
-    );
-    back.position.z = -depth / 2;
+    // Back of canvas (linen texture)
+    const backGeo = new THREE.PlaneGeometry(size - 0.15, size - 0.15);
+    const backMat = new THREE.MeshStandardMaterial({
+        color: 0xC8B896,
+        roughness: 0.95
+    });
+    const back = new THREE.Mesh(backGeo, backMat);
+    back.position.z = -canvasDepth / 2;
     back.rotation.y = Math.PI;
     detailArtwork.add(back);
 
-    // Wooden support bars on back
+    // Wooden support bars (visible on back)
     const barMat = new THREE.MeshStandardMaterial({
         color: 0x5D4E37,
-        roughness: 0.8
+        roughness: 0.85
     });
-    const bar1 = new THREE.Mesh(new THREE.BoxGeometry(size - 0.4, 0.1, 0.04), barMat);
-    bar1.position.set(0, size / 3, -depth / 2 - 0.02);
+
+    const bar1 = new THREE.Mesh(
+        new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
+        barMat
+    );
+    bar1.position.set(0, size / 3, -canvasDepth / 2 - 0.03);
     detailArtwork.add(bar1);
 
-    const bar2 = new THREE.Mesh(new THREE.BoxGeometry(size - 0.4, 0.1, 0.04), barMat);
-    bar2.position.set(0, -size / 3, -depth / 2 - 0.02);
+    const bar2 = new THREE.Mesh(
+        new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
+        barMat
+    );
+    bar2.position.set(0, -size / 3, -canvasDepth / 2 - 0.03);
     detailArtwork.add(bar2);
 
-    // Dark wood frame
-    const frameMat = new THREE.MeshStandardMaterial({
-        color: 0x3D2817,
-        roughness: 0.6,
-        metalness: 0.05
-    });
-    const frameThick = 0.18;
-    const frameDepth = depth + 0.1;
-
-    const topF = new THREE.Mesh(new THREE.BoxGeometry(size + 0.4, frameThick, frameDepth), frameMat);
-    topF.position.y = size / 2 + frameThick / 2;
-    detailArtwork.add(topF);
-
-    const bottomF = new THREE.Mesh(new THREE.BoxGeometry(size + 0.4, frameThick, frameDepth), frameMat);
-    bottomF.position.y = -(size / 2 + frameThick / 2);
-    detailArtwork.add(bottomF);
-
-    const leftF = new THREE.Mesh(new THREE.BoxGeometry(frameThick, size, frameDepth), frameMat);
-    leftF.position.x = -(size / 2 + frameThick / 2);
-    detailArtwork.add(leftF);
-
-    const rightF = new THREE.Mesh(new THREE.BoxGeometry(frameThick, size, frameDepth), frameMat);
-    rightF.position.x = size / 2 + frameThick / 2;
-    detailArtwork.add(rightF);
-
-    // Glass protection
-    const glass = new THREE.Mesh(
-        new THREE.PlaneGeometry(size + 0.2, size + 0.2),
-        new THREE.MeshStandardMaterial({
-            color: 0xFFFFFF,
-            transparent: true,
-            opacity: 0.03,
-            roughness: 0.05,
-            metalness: 0.1
-        })
+    const bar3 = new THREE.Mesh(
+        new THREE.BoxGeometry(0.12, size - 0.5, 0.05),
+        barMat
     );
-    glass.position.z = depth / 2 + 0.05;
+    bar3.position.set(0, 0, -canvasDepth / 2 - 0.03);
+    detailArtwork.add(bar3);
+
+    // Ornate frame
+    const frameMat = new THREE.MeshStandardMaterial({
+        color: 0x3E2723,
+        roughness: 0.5,
+        metalness: 0.15
+    });
+
+    const frameThick = 0.2;
+    const frameDepth = canvasDepth + 0.15;
+
+    const topFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
+        frameMat
+    );
+    topFrame.position.y = size / 2 + frameThick / 2;
+    detailArtwork.add(topFrame);
+
+    const bottomFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
+        frameMat
+    );
+    bottomFrame.position.y = -(size / 2 + frameThick / 2);
+    detailArtwork.add(bottomFrame);
+
+    const leftFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(frameThick, size, frameDepth),
+        frameMat
+    );
+    leftFrame.position.x = -(size / 2 + frameThick / 2);
+    detailArtwork.add(leftFrame);
+
+    const rightFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(frameThick, size, frameDepth),
+        frameMat
+    );
+    rightFrame.position.x = size / 2 + frameThick / 2;
+    detailArtwork.add(rightFrame);
+
+    // Protective glass with subtle reflection
+    const glassGeo = new THREE.PlaneGeometry(size + 0.3, size + 0.3);
+    const glassMat = new THREE.MeshStandardMaterial({
+        color: 0xFFFFFF,
+        transparent: true,
+        opacity: 0.04,
+        roughness: 0.02,
+        metalness: 0.3
+    });
+    const glass = new THREE.Mesh(glassGeo, glassMat);
+    glass.position.z = canvasDepth / 2 + 0.08;
     detailArtwork.add(glass);
 
     scene.add(detailArtwork);
-    selectedPainting = paintingData;
+    selectedPainting = artworkData;
 
-    // Add key light (main light from front-left)
-    detailKeyLight = new THREE.DirectionalLight(0xFFFFFF, 0.8);
-    detailKeyLight.position.set(-3, 3, 5);
-    detailKeyLight.target.position.set(0, 1.6, 0);
+    // Professional 3-point lighting
+    // Key light (main light from upper left)
+    detailKeyLight = new THREE.SpotLight(0xFFFFFF, 1.2, 15, Math.PI / 6, 0.4);
+    detailKeyLight.position.set(-4, 4, 6);
+    detailKeyLight.target.position.set(0, 1.7, 0);
     scene.add(detailKeyLight);
     scene.add(detailKeyLight.target);
 
-    // Add rim light (subtle back-right highlight)
-    detailRimLight = new THREE.PointLight(0xFFF4E6, 0.4, 10);
-    detailRimLight.position.set(2, 2, -2);
+    // Rim light (back-right highlight)
+    detailRimLight = new THREE.PointLight(0xFFF4E0, 0.6, 12);
+    detailRimLight.position.set(3, 2.5, -3);
     scene.add(detailRimLight);
 
+    // Fill light (soft front fill)
+    detailFillLight = new THREE.DirectionalLight(0xFFFFFF, 0.3);
+    detailFillLight.position.set(2, 1, 5);
+    scene.add(detailFillLight);
+
+    // Animate camera to viewing position
     animateCamera(
         camera.position.clone(),
-        new THREE.Vector3(0, 1.6, 5),
+        new THREE.Vector3(0, 1.7, 6),
         camera.rotation.clone(),
         new THREE.Euler(0, 0, 0),
-        800,
+        1000,
         () => {
             currentView = 'DETAIL';
             isAnimating = false;
             backBtn.textContent = '← Back to Gallery';
-            showInfo(paintingData);
+            showArtworkInfo(artworkData);
             renderer.domElement.style.cursor = 'grab';
-            console.log('✅ Detail view with enhanced lighting ready');
+            console.log('✅ Detail view ready - 360° rotation enabled');
         }
     );
 }
@@ -683,40 +795,38 @@ function goBack() {
     console.log('⬅️ Going back...');
 
     if (currentView === 'DETAIL') {
-        // Return to wall
+        // Clean up detail view
         if (detailArtwork) {
             scene.remove(detailArtwork);
             detailArtwork = null;
         }
 
-        // Remove detail lights
-        if (detailKeyLight) {
-            scene.remove(detailKeyLight);
-            scene.remove(detailKeyLight.target);
-            detailKeyLight = null;
-        }
-        if (detailRimLight) {
-            scene.remove(detailRimLight);
-            detailRimLight = null;
-        }
+        // Remove lighting
+        if (detailKeyLight) scene.remove(detailKeyLight);
+        if (detailRimLight) scene.remove(detailRimLight);
+        if (detailFillLight) scene.remove(detailFillLight);
+        if (detailKeyLight && detailKeyLight.target) scene.remove(detailKeyLight.target);
+        detailKeyLight = detailRimLight = detailFillLight = null;
 
-        // Restore corridor background
-        scene.background = new THREE.Color(0x87CEEB);
-
-        hideInfo();
-        corridorObjects.forEach(obj => obj.visible = true);
+        // Restore corridor
+        scene.background = new THREE.Color(0xFAF8F3);
+        scene.fog = new THREE.Fog(0xFAF8F3, 15, 30);
+        hideArtworkInfo();
+        corridorGroup.forEach(obj => obj.visible = true);
         renderer.domElement.style.cursor = 'default';
 
         const side = camera.position.x < 0 ? 'left' : 'right';
-        const targetRot = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-        const targetPos = side === 'left' ? new THREE.Vector3(-3, 1.6, 0) : new THREE.Vector3(3, 1.6, 0);
+        const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+        const targetPos = side === 'left'
+            ? new THREE.Vector3(-2.5, 1.7, 0)
+            : new THREE.Vector3(2.5, 1.7, 0);
 
         isAnimating = true;
         animateCamera(
             camera.position.clone(),
             targetPos,
             camera.rotation.clone(),
-            new THREE.Euler(0, targetRot, 0),
+            new THREE.Euler(0, targetAngle, 0),
             800,
             () => {
                 currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
@@ -724,12 +834,13 @@ function goBack() {
                 backBtn.textContent = '← Back to Corridor';
             }
         );
+
     } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
-        // Return to corridor
+        // Return to corridor center
         isAnimating = true;
         animateCamera(
             camera.position.clone(),
-            new THREE.Vector3(0, 1.6, 0),
+            new THREE.Vector3(0, 1.7, 0),
             camera.rotation.clone(),
             new THREE.Euler(0, 0, 0),
             800,
@@ -741,22 +852,26 @@ function goBack() {
                 wallHintRight.classList.remove('hidden');
             }
         );
+
     } else if (currentView === 'CORRIDOR') {
-        // Return to entrance
+        // Exit to entrance
         isAnimating = true;
-        corridorObjects.forEach(obj => obj.visible = false);
+        corridorGroup.forEach(obj => obj.visible = false);
         entranceDoor.visible = true;
 
-        // Reset door positions
-        leftDoor.rotation.y = 0;
-        rightDoor.rotation.y = 0;
+        // Reset doors
+        leftDoorPanel.rotation.y = 0;
+        rightDoorPanel.rotation.y = 0;
+
+        scene.background = new THREE.Color(0xE8DCC8);
+        scene.fog = new THREE.Fog(0xE8DCC8, 10, 50);
 
         animateCamera(
             camera.position.clone(),
-            new THREE.Vector3(0, 1.6, 5),
+            new THREE.Vector3(0, 1.7, 8),
             camera.rotation.clone(),
             new THREE.Euler(0, 0, 0),
-            1000,
+            1200,
             () => {
                 currentView = 'ENTRANCE';
                 isAnimating = false;
@@ -770,7 +885,7 @@ function goBack() {
 }
 
 // ============================================
-// ANIMATION & HELPERS
+// CAMERA ANIMATION
 // ============================================
 
 function animateCamera(fromPos, toPos, fromRot, toRot, duration, callback) {
@@ -778,10 +893,10 @@ function animateCamera(fromPos, toPos, fromRot, toRot, duration, callback) {
     const startPos = fromPos.clone();
     const startRot = fromRot.clone();
 
-    function update() {
+    function updateCamera() {
         const elapsed = Date.now() - startTime;
         const t = Math.min(elapsed / duration, 1);
-        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const eased = easeInOutCubic(t);
 
         camera.position.lerpVectors(startPos, toPos, eased);
         camera.rotation.x = THREE.MathUtils.lerp(startRot.x, toRot.x, eased);
@@ -789,30 +904,41 @@ function animateCamera(fromPos, toPos, fromRot, toRot, duration, callback) {
         camera.rotation.z = THREE.MathUtils.lerp(startRot.z, toRot.z, eased);
 
         if (t < 1) {
-            requestAnimationFrame(update);
+            requestAnimationFrame(updateCamera);
         } else {
             if (callback) callback();
         }
     }
 
-    update();
+    updateCamera();
 }
+
+function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+// ============================================
+// RENDER LOOP
+// ============================================
 
 function animate() {
     requestAnimationFrame(animate);
 
-    // Animate hovered painting (subtle zoom and glow)
+    // Painting hover effect (scale up)
     if (hoveredPainting && (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT')) {
-        const targetScale = 1.08;
-        const currentScale = hoveredPainting.scale.x;
-        hoveredPainting.scale.setScalar(THREE.MathUtils.lerp(currentScale, targetScale, 0.1));
+        const targetScale = 1.05;
+        hoveredPainting.scale.setScalar(
+            THREE.MathUtils.lerp(hoveredPainting.scale.x, targetScale, 0.08)
+        );
     }
 
-    // Reset scale for non-hovered paintings
+    // Reset other paintings
     const allPaintings = [...leftWallPaintings, ...rightWallPaintings];
     allPaintings.forEach(painting => {
         if (painting !== hoveredPainting && painting.scale.x > 1.001) {
-            painting.scale.setScalar(THREE.MathUtils.lerp(painting.scale.x, 1, 0.1));
+            painting.scale.setScalar(
+                THREE.MathUtils.lerp(painting.scale.x, 1, 0.08)
+            );
         }
     });
 
@@ -828,19 +954,21 @@ function onMouseMove(event) {
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    // Drag to rotate in detail view
+    // 360° rotation in detail view
     if (currentView === 'DETAIL' && isDragging && detailArtwork) {
         const deltaX = event.clientX - previousMouse.x;
         const deltaY = event.clientY - previousMouse.y;
 
-        detailArtwork.rotation.y += deltaX * 0.01;
-        detailArtwork.rotation.x += deltaY * 0.01;
-        detailArtwork.rotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, detailArtwork.rotation.x));
+        detailArtwork.rotation.y += deltaX * 0.008;
+        detailArtwork.rotation.x += deltaY * 0.005;
+
+        // Limit tilt
+        detailArtwork.rotation.x = Math.max(-Math.PI / 6, Math.min(Math.PI / 6, detailArtwork.rotation.x));
 
         previousMouse = { x: event.clientX, y: event.clientY };
     }
 
-    // Hover cursor and effects
+    // Hover detection
     if (!isDragging && !isAnimating) {
         raycaster.setFromCamera(mouse, camera);
         let cursor = 'default';
@@ -849,18 +977,20 @@ function onMouseMove(event) {
         if (currentView === 'ENTRANCE') {
             const hits = raycaster.intersectObject(entranceDoor, true);
             if (hits.length > 0) cursor = 'pointer';
+
         } else if (currentView === 'CORRIDOR') {
             const hits = raycaster.intersectObjects(scene.children, true);
-            for (let h of hits) {
-                if (h.object.userData.clickable && h.object.userData.type === 'wall') {
+            for (const hit of hits) {
+                if (hit.object.userData.clickable && hit.object.userData.type === 'wall') {
                     cursor = 'pointer';
                     break;
                 }
             }
+
         } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
             const hits = raycaster.intersectObjects(scene.children, true);
-            for (let h of hits) {
-                let obj = h.object;
+            for (const hit of hits) {
+                let obj = hit.object;
                 while (obj.parent && !obj.userData.clickable) obj = obj.parent;
                 if (obj.userData.type === 'painting') {
                     cursor = 'pointer';
@@ -884,24 +1014,26 @@ function onClick(event) {
         const hits = raycaster.intersectObject(entranceDoor, true);
         if (hits.length > 0) {
             console.log('🚪 Door clicked');
-            enterCorridor();
+            enterMuseum();
         }
+
     } else if (currentView === 'CORRIDOR') {
         const hits = raycaster.intersectObjects(scene.children, true);
-        for (let h of hits) {
-            if (h.object.userData.clickable && h.object.userData.type === 'wall') {
-                console.log(`Wall clicked: ${h.object.userData.side}`);
-                viewWall(h.object.userData.side);
+        for (const hit of hits) {
+            if (hit.object.userData.clickable && hit.object.userData.type === 'wall') {
+                console.log(`🖼️ ${hit.object.userData.side} wall clicked`);
+                viewWall(hit.object.userData.side);
                 break;
             }
         }
+
     } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
         const hits = raycaster.intersectObjects(scene.children, true);
-        for (let h of hits) {
-            let obj = h.object;
+        for (const hit of hits) {
+            let obj = hit.object;
             while (obj.parent && !obj.userData.clickable) obj = obj.parent;
             if (obj.userData.type === 'painting') {
-                viewPaintingDetail(obj.userData.data);
+                viewArtworkDetail(obj.userData.data);
                 break;
             }
         }
@@ -923,11 +1055,20 @@ function onMouseUp(event) {
     }
 }
 
+function onMouseLeave(event) {
+    if (currentView === 'DETAIL') {
+        isDragging = false;
+        renderer.domElement.style.cursor = 'grab';
+    }
+}
+
 function onWheel(event) {
     if (currentView === 'DETAIL') {
         event.preventDefault();
-        const delta = event.deltaY * 0.002;
-        camera.position.z = Math.max(2, Math.min(8, camera.position.z + delta));
+
+        // Zoom: 2m to 9m range (up to 300% zoom)
+        const delta = event.deltaY * 0.005;
+        camera.position.z = Math.max(2, Math.min(9, camera.position.z + delta));
     }
 }
 
@@ -941,7 +1082,7 @@ function onWindowResize() {
 // UI FUNCTIONS
 // ============================================
 
-function showInfo(data) {
+function showArtworkInfo(data) {
     document.getElementById('artwork-title').textContent = data.title;
     document.getElementById('artwork-artist').textContent = data.artist;
     document.getElementById('artwork-year').textContent = data.year;
@@ -950,12 +1091,12 @@ function showInfo(data) {
     infoPanel.classList.remove('hidden');
 }
 
-function hideInfo() {
+function hideArtworkInfo() {
     infoPanel.classList.add('hidden');
 }
 
 // ============================================
-// START
+// START APPLICATION
 // ============================================
 
 init();
