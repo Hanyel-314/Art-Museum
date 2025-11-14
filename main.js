@@ -991,13 +991,13 @@ function createWhiteLightTransition() {
     setTimeout(() => {
         entranceDoor.visible = false;
         scene.background = new THREE.Color(0xFAF8F3);
-        scene.fog = new THREE.Fog(0xFAF8F3, 15, 30);
+        scene.fog = new THREE.Fog(0xFAF8F3, 25, 55); // Adjusted fog for 40m corridor
         corridorGroup.forEach(obj => obj.visible = true);
 
-        // Move camera to corridor position
-        camera.position.set(0, 1.7, -5); // Start from back of corridor
+        // Move camera to corridor position - looking down the corridor
+        camera.position.set(0, 1.7, -18); // Further back to see perspective
         camera.rotation.set(0, 0, 0);
-        camera.lookAt(0, 1.7, 0);
+        camera.lookAt(0, 2, 10); // Look toward far end to see perspective
     }, 800);
 
     // Fade from white
@@ -1262,7 +1262,7 @@ function goBack() {
 
         // Restore corridor
         scene.background = new THREE.Color(0xFAF8F3);
-        scene.fog = new THREE.Fog(0xFAF8F3, 15, 30);
+        scene.fog = new THREE.Fog(0xFAF8F3, 25, 55); // Match corridor fog settings
         hideArtworkInfo();
         corridorGroup.forEach(obj => obj.visible = true);
         renderer.domElement.style.cursor = 'default';
@@ -1292,7 +1292,7 @@ function goBack() {
         isAnimating = true;
         animateCamera(
             camera.position.clone(),
-            new THREE.Vector3(0, 1.7, -5), // Back of corridor looking forward
+            new THREE.Vector3(0, 1.7, -18), // Back of corridor looking forward
             camera.rotation.clone(),
             new THREE.Euler(0, 0, 0),
             800,
@@ -1302,6 +1302,7 @@ function goBack() {
                 backBtn.textContent = '← Exit Museum';
                 wallHintLeft.classList.remove('hidden');
                 wallHintRight.classList.remove('hidden');
+                camera.lookAt(0, 2, 10); // Look toward far end
             }
         );
 
