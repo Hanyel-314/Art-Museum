@@ -382,14 +382,19 @@ function createPillar(x, y, z) {
 }
 
 function createCorridorScene() {
-    console.log('Creating corridor...');
+    console.log('Creating baroque corridor...');
 
-    // Marble floor - long corridor
-    const floorGeo = new THREE.PlaneGeometry(10, 25);
+    // Extended corridor dimensions for dramatic perspective
+    const corridorLength = 40; // Much longer corridor
+    const corridorWidth = 12; // Wider corridor
+
+    // Glossy marble floor with reflective properties
+    const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
     const floorMat = new THREE.MeshStandardMaterial({
-        color: 0xF5F5F0,
-        roughness: 0.2,
-        metalness: 0.3
+        color: 0xF8F4E8, // Cream marble
+        roughness: 0.1, // Very glossy
+        metalness: 0.4,
+        envMapIntensity: 1.0
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -398,46 +403,51 @@ function createCorridorScene() {
     corridorGroup.push(floor);
     scene.add(floor);
 
-    // Ceiling
-    const ceilingGeo = new THREE.PlaneGeometry(10, 25);
+    // Baroque painted ceiling
+    const ceilingGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
     const ceilingMat = new THREE.MeshStandardMaterial({
-        color: 0xFFFFF8,
+        color: 0xE8D4B8, // Warm fresco color
         roughness: 0.9,
         metalness: 0
     });
     const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
     ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.y = 4.5;
+    ceiling.position.y = 6; // Higher ceiling
     ceiling.visible = false;
     corridorGroup.push(ceiling);
     scene.add(ceiling);
 
-    // Recessed ceiling lights (warm museum lighting 3500-4200K)
-    const warmLightColor = 0xFFF4E0;
-    for (let i = -10; i <= 10; i += 5) {
-        const ceilingLight = new THREE.SpotLight(warmLightColor, 0.6, 12, Math.PI / 6, 0.4);
-        ceilingLight.position.set(0, 4.3, i);
-        ceilingLight.target.position.set(0, 0, i);
-        ceilingLight.visible = false;
-        ceilingLight.castShadow = true;
-        corridorGroup.push(ceilingLight);
-        corridorGroup.push(ceilingLight.target);
-        scene.add(ceilingLight);
-        scene.add(ceilingLight.target);
+    // Add baroque ceiling fresco panels
+    createCeilingFrescoes(corridorLength);
+
+    // Crystal chandeliers along the corridor
+    for (let i = -15; i <= 15; i += 10) {
+        createChandelier(0, 5.5, i);
     }
 
-    // Walls - sandstone texture
+    // Warm museum lighting from chandeliers
+    const warmLightColor = 0xFFE8C0; // Warm golden light
+    for (let i = -18; i <= 18; i += 6) {
+        const chandLight = new THREE.PointLight(warmLightColor, 0.8, 15);
+        chandLight.position.set(0, 5.2, i);
+        chandLight.visible = false;
+        chandLight.castShadow = true;
+        corridorGroup.push(chandLight);
+        scene.add(chandLight);
+    }
+
+    // Walls with ornate decorations
     const wallMat = new THREE.MeshStandardMaterial({
-        color: 0xE8DCC8,
-        roughness: 0.95,
-        metalness: 0
+        color: 0xE8DCC0, // Rich cream
+        roughness: 0.8,
+        metalness: 0.05
     });
 
     // Left wall
-    const leftWallGeo = new THREE.PlaneGeometry(25, 4.5);
+    const leftWallGeo = new THREE.PlaneGeometry(corridorLength, 6);
     const leftWall = new THREE.Mesh(leftWallGeo, wallMat);
     leftWall.rotation.y = Math.PI / 2;
-    leftWall.position.set(-5, 2.25, 0);
+    leftWall.position.set(-corridorWidth / 2, 3, 0);
     leftWall.receiveShadow = true;
     leftWall.userData.clickable = true;
     leftWall.userData.type = 'wall';
@@ -449,7 +459,7 @@ function createCorridorScene() {
     // Right wall
     const rightWall = new THREE.Mesh(leftWallGeo, wallMat);
     rightWall.rotation.y = -Math.PI / 2;
-    rightWall.position.set(5, 2.25, 0);
+    rightWall.position.set(corridorWidth / 2, 3, 0);
     rightWall.receiveShadow = true;
     rightWall.userData.clickable = true;
     rightWall.userData.type = 'wall';
@@ -458,85 +468,272 @@ function createCorridorScene() {
     corridorGroup.push(rightWall);
     scene.add(rightWall);
 
-    // Front wall (end of corridor facing forward)
-    const frontWallGeo = new THREE.PlaneGeometry(10, 4.5);
+    // Add gold moldings along walls
+    createGoldMoldings(corridorLength, corridorWidth);
+
+    // Front wall at vanishing point
+    const frontWallGeo = new THREE.PlaneGeometry(corridorWidth, 6);
     const frontWall = new THREE.Mesh(frontWallGeo, wallMat);
-    frontWall.position.set(0, 2.25, 12.5);
+    frontWall.position.set(0, 3, corridorLength / 2);
     frontWall.receiveShadow = true;
     frontWall.visible = false;
     corridorGroup.push(frontWall);
     scene.add(frontWall);
 
-    // Back wall (behind camera)
+    // Back wall
     const backWall = new THREE.Mesh(frontWallGeo, wallMat);
     backWall.rotation.y = Math.PI;
-    backWall.position.set(0, 2.25, -12.5);
+    backWall.position.set(0, 3, -corridorLength / 2);
     backWall.receiveShadow = true;
     backWall.visible = false;
     corridorGroup.push(backWall);
     scene.add(backWall);
 
-    // Add perspective elements - decorative moldings that narrow toward the front
-    // Left side molding
-    for (let i = 0; i < 5; i++) {
-        const z = -10 + (i * 5);
-        const moldingGeo = new THREE.BoxGeometry(0.1, 0.1, 4.5);
-        const moldingMat = new THREE.MeshStandardMaterial({
-            color: 0xC8B8A0,
-            roughness: 0.7,
-            metalness: 0.2
-        });
-        const molding = new THREE.Mesh(moldingGeo, moldingMat);
-        molding.position.set(-5, 3.8, z);
-        molding.visible = false;
-        corridorGroup.push(molding);
-        scene.add(molding);
+    // Create continuous rows of paintings on both walls
+    createBaroquePaintings('left', -(corridorWidth / 2) + 0.15, leftWallPaintings);
+    createBaroquePaintings('right', (corridorWidth / 2) - 0.15, rightWallPaintings);
 
-        // Floor molding
-        const floorMolding = new THREE.Mesh(moldingGeo, moldingMat);
-        floorMolding.position.set(-5, 0.1, z);
-        floorMolding.visible = false;
-        corridorGroup.push(floorMolding);
-        scene.add(floorMolding);
-    }
-
-    // Right side molding
-    for (let i = 0; i < 5; i++) {
-        const z = -10 + (i * 5);
-        const moldingGeo = new THREE.BoxGeometry(0.1, 0.1, 4.5);
-        const moldingMat = new THREE.MeshStandardMaterial({
-            color: 0xC8B8A0,
-            roughness: 0.7,
-            metalness: 0.2
-        });
-        const molding = new THREE.Mesh(moldingGeo, moldingMat);
-        molding.position.set(5, 3.8, z);
-        molding.visible = false;
-        corridorGroup.push(molding);
-        scene.add(molding);
-
-        // Floor molding
-        const floorMolding = new THREE.Mesh(moldingGeo, moldingMat);
-        floorMolding.position.set(5, 0.1, z);
-        floorMolding.visible = false;
-        corridorGroup.push(floorMolding);
-        scene.add(floorMolding);
-    }
-
-    // Create sculpture at the end of corridor
+    // Sculpture at the vanishing point
     createCorridorSculpture();
 
-    // Create paintings on both walls
-    createWallPaintings('left', -4.85, leftWallPaintings);
-    createWallPaintings('right', 4.85, rightWallPaintings);
+    console.log('✅ Baroque corridor created with dramatic perspective');
+}
 
-    console.log('✅ Corridor created with depth and perspective');
+function createCeilingFrescoes(corridorLength) {
+    // Create baroque fresco panels on ceiling
+    const frescoPanels = [
+        { color: 0xD4A574, z: -15 }, // Golden/amber tones
+        { color: 0xB8C4D8, z: -5 },  // Sky blue
+        { color: 0xE8C4A8, z: 5 },   // Peachy tones
+        { color: 0xC4B8D8, z: 15 }   // Light purple
+    ];
+
+    frescoPanels.forEach(panel => {
+        const panelGeo = new THREE.PlaneGeometry(8, 8);
+        const panelMat = new THREE.MeshStandardMaterial({
+            color: panel.color,
+            roughness: 0.9,
+            metalness: 0,
+            emissive: panel.color,
+            emissiveIntensity: 0.1
+        });
+        const fresco = new THREE.Mesh(panelGeo, panelMat);
+        fresco.rotation.x = Math.PI / 2;
+        fresco.position.set(0, 5.95, panel.z);
+        fresco.visible = false;
+        corridorGroup.push(fresco);
+        scene.add(fresco);
+
+        // Gold border around fresco panel
+        const borderGeo = new THREE.TorusGeometry(4.2, 0.08, 8, 24);
+        const borderMat = new THREE.MeshStandardMaterial({
+            color: 0xFFD700,
+            roughness: 0.3,
+            metalness: 0.9
+        });
+        const border = new THREE.Mesh(borderGeo, borderMat);
+        border.rotation.x = Math.PI / 2;
+        border.position.set(0, 5.9, panel.z);
+        border.visible = false;
+        corridorGroup.push(border);
+        scene.add(border);
+    });
+
+    console.log('✅ Ceiling frescoes created');
+}
+
+function createChandelier(x, y, z) {
+    const chandelierGroup = new THREE.Group();
+    chandelierGroup.position.set(x, y, z);
+    chandelierGroup.visible = false;
+
+    // Gold base
+    const baseGeo = new THREE.CylinderGeometry(0.3, 0.4, 0.2, 12);
+    const goldMat = new THREE.MeshStandardMaterial({
+        color: 0xFFD700,
+        roughness: 0.2,
+        metalness: 0.9
+    });
+    const base = new THREE.Mesh(baseGeo, goldMat);
+    chandelierGroup.add(base);
+
+    // Crystal elements
+    const crystalMat = new THREE.MeshStandardMaterial({
+        color: 0xFFFFFF,
+        roughness: 0.1,
+        metalness: 0.3,
+        transparent: true,
+        opacity: 0.9
+    });
+
+    // Hanging crystals in a circle
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const radius = 0.5;
+        const crystalGeo = new THREE.ConeGeometry(0.05, 0.3, 6);
+        const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+        crystal.position.set(
+            Math.cos(angle) * radius,
+            -0.3,
+            Math.sin(angle) * radius
+        );
+        crystal.rotation.x = Math.PI;
+        chandelierGroup.add(crystal);
+    }
+
+    corridorGroup.push(chandelierGroup);
+    scene.add(chandelierGroup);
+}
+
+function createGoldMoldings(corridorLength, corridorWidth) {
+    const goldMat = new THREE.MeshStandardMaterial({
+        color: 0xD4AF37, // Rich gold
+        roughness: 0.3,
+        metalness: 0.8
+    });
+
+    // Horizontal gold moldings along walls
+    for (let side = -1; side <= 1; side += 2) {
+        // Top molding
+        const topMoldingGeo = new THREE.BoxGeometry(0.1, 0.15, corridorLength);
+        const topMolding = new THREE.Mesh(topMoldingGeo, goldMat);
+        topMolding.position.set(side * (corridorWidth / 2), 5.5, 0);
+        topMolding.visible = false;
+        corridorGroup.push(topMolding);
+        scene.add(topMolding);
+
+        // Middle molding
+        const midMolding = new THREE.Mesh(topMoldingGeo, goldMat);
+        midMolding.position.set(side * (corridorWidth / 2), 3, 0);
+        midMolding.visible = false;
+        corridorGroup.push(midMolding);
+        scene.add(midMolding);
+
+        // Base molding
+        const baseMolding = new THREE.Mesh(topMoldingGeo, goldMat);
+        baseMolding.position.set(side * (corridorWidth / 2), 0.5, 0);
+        baseMolding.visible = false;
+        corridorGroup.push(baseMolding);
+        scene.add(baseMolding);
+    }
+
+    console.log('✅ Gold moldings created');
+}
+
+function createBaroquePaintings(side, xPos, storageArray) {
+    const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+
+    // Create many paintings along the corridor (10 paintings per wall)
+    const paintingCount = 10;
+    const startZ = -18;
+    const spacing = 3.8;
+
+    for (let i = 0; i < paintingCount; i++) {
+        const zPos = startZ + (i * spacing);
+
+        // Select artwork data (cycle through available artworks)
+        const artworks = ARTWORKS[side];
+        const artwork = artworks[i % artworks.length];
+
+        const paintingGroup = new THREE.Group();
+        paintingGroup.position.set(xPos, 3, zPos);
+        paintingGroup.rotation.y = rotation;
+        paintingGroup.visible = false;
+        paintingGroup.userData.clickable = true;
+        paintingGroup.userData.type = 'painting';
+        paintingGroup.userData.data = artwork;
+        paintingGroup.userData.side = side;
+
+        // Larger canvas for baroque gallery
+        const canvasSize = 1.8;
+        const canvasGeo = new THREE.PlaneGeometry(canvasSize, canvasSize);
+        const canvasMat = new THREE.MeshStandardMaterial({
+            color: artwork.color,
+            roughness: 0.7,
+            metalness: 0
+        });
+        const canvas = new THREE.Mesh(canvasGeo, canvasMat);
+        canvas.position.z = 0.03;
+        paintingGroup.add(canvas);
+
+        // Anti-reflection glass
+        const glassGeo = new THREE.PlaneGeometry(canvasSize + 0.1, canvasSize + 0.1);
+        const glassMat = new THREE.MeshStandardMaterial({
+            color: 0xFFFFFF,
+            transparent: true,
+            opacity: 0.05,
+            roughness: 0.02,
+            metalness: 0.3
+        });
+        const glass = new THREE.Mesh(glassGeo, glassMat);
+        glass.position.z = 0.08;
+        paintingGroup.add(glass);
+
+        // Ornate gold frame
+        const frameColor = 0xD4AF37; // Gold
+        const frameMat = new THREE.MeshStandardMaterial({
+            color: frameColor,
+            roughness: 0.3,
+            metalness: 0.8
+        });
+
+        const frameThick = 0.15;
+        const frameDepth = 0.12;
+
+        // Frame pieces
+        const topFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(canvasSize + 0.3, frameThick, frameDepth),
+            frameMat
+        );
+        topFrame.position.y = (canvasSize / 2) + (frameThick / 2);
+        paintingGroup.add(topFrame);
+
+        const bottomFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(canvasSize + 0.3, frameThick, frameDepth),
+            frameMat
+        );
+        bottomFrame.position.y = -(canvasSize / 2) - (frameThick / 2);
+        paintingGroup.add(bottomFrame);
+
+        const leftFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(frameThick, canvasSize, frameDepth),
+            frameMat
+        );
+        leftFrame.position.x = -(canvasSize / 2) - (frameThick / 2);
+        paintingGroup.add(leftFrame);
+
+        const rightFrame = new THREE.Mesh(
+            new THREE.BoxGeometry(frameThick, canvasSize, frameDepth),
+            frameMat
+        );
+        rightFrame.position.x = (canvasSize / 2) + (frameThick / 2);
+        paintingGroup.add(rightFrame);
+
+        // Wall light above painting
+        const wallLight = new THREE.SpotLight(0xFFE8C0, 0.5, 4, Math.PI / 8, 0.4);
+        wallLight.position.copy(paintingGroup.position);
+        wallLight.position.y += 1.3;
+        wallLight.position.z += (side === 'left' ? -0.15 : 0.15);
+        wallLight.target.position.copy(paintingGroup.position);
+        wallLight.visible = false;
+        wallLight.castShadow = true;
+        corridorGroup.push(wallLight);
+        corridorGroup.push(wallLight.target);
+        scene.add(wallLight);
+        scene.add(wallLight.target);
+
+        storageArray.push(paintingGroup);
+        corridorGroup.push(paintingGroup);
+        scene.add(paintingGroup);
+    }
+
+    console.log(`✅ Created ${paintingCount} baroque paintings on ${side} wall`);
 }
 
 function createCorridorSculpture() {
     // Create an elegant classical sculpture at the end of the corridor
     const sculptureGroup = new THREE.Group();
-    sculptureGroup.position.set(0, 0, 10); // Position at corridor end
+    sculptureGroup.position.set(0, 0, 18); // Position at far vanishing point
     sculptureGroup.visible = false;
 
     // Pedestal base
