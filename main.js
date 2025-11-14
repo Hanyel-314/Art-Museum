@@ -193,7 +193,7 @@ function init() {
 function createEntranceScene() {
     console.log('Creating entrance scene...');
 
-    // Stone ground
+    // Stone ground with pattern
     const groundGeo = new THREE.PlaneGeometry(30, 30);
     const groundMat = new THREE.MeshStandardMaterial({
         color: 0xC8B8A0,
@@ -206,21 +206,44 @@ function createEntranceScene() {
     scene.add(ground);
 
     // Museum facade - stone wall
-    const facadeGeo = new THREE.BoxGeometry(12, 8, 0.8);
+    const facadeGeo = new THREE.BoxGeometry(12, 10, 0.8);
     const facadeMat = new THREE.MeshStandardMaterial({
         color: 0xD9CEB8,
         roughness: 0.9,
         metalness: 0
     });
     const facade = new THREE.Mesh(facadeGeo, facadeMat);
-    facade.position.set(0, 4, -0.5);
+    facade.position.set(0, 5, -0.5);
     facade.receiveShadow = true;
     facade.castShadow = true;
     scene.add(facade);
 
+    // Decorative cornice on top
+    const corniceGeo = new THREE.BoxGeometry(13, 0.5, 1);
+    const cornice = new THREE.Mesh(corniceGeo, facadeMat);
+    cornice.position.set(0, 10.2, -0.5);
+    scene.add(cornice);
+
+    // Add "ART MUSEUM" text using geometry
+    createMuseumSign();
+
+    // Decorative relief panels
+    for (let i = -1; i <= 1; i++) {
+        if (i === 0) continue; // Skip center where door is
+        const reliefGeo = new THREE.BoxGeometry(2, 2, 0.1);
+        const reliefMat = new THREE.MeshStandardMaterial({
+            color: 0xC8B8A0,
+            roughness: 0.7,
+            metalness: 0.1
+        });
+        const relief = new THREE.Mesh(reliefGeo, reliefMat);
+        relief.position.set(i * 4, 7, -0.1);
+        scene.add(relief);
+    }
+
     // Pillars
-    createPillar(-4, 0, 0);
-    createPillar(4, 0, 0);
+    createPillar(-4.5, 0, 0);
+    createPillar(4.5, 0, 0);
 
     // Museum door assembly
     entranceDoor = new THREE.Group();
@@ -237,9 +260,9 @@ function createEntranceScene() {
     doorFrame.position.set(0, 2.75, 0.05);
     entranceDoor.add(doorFrame);
 
-    // Left door panel
+    // Left door panel - pivot on LEFT edge for outward opening
     leftDoorPanel = new THREE.Group();
-    leftDoorPanel.position.set(-0.1, 2.5, 0);
+    leftDoorPanel.position.set(-2.15, 2.5, 0.1); // Position at left edge
 
     const leftDoorGeo = new THREE.BoxGeometry(2, 5, 0.15);
     const doorMat = new THREE.MeshStandardMaterial({
@@ -248,7 +271,7 @@ function createEntranceScene() {
         metalness: 0.1
     });
     const leftDoor = new THREE.Mesh(leftDoorGeo, doorMat);
-    leftDoor.position.x = -1;
+    leftDoor.position.x = 1; // Door extends to the right from pivot
     leftDoor.castShadow = true;
     leftDoor.userData.clickable = true;
     leftDoor.userData.type = 'door';
@@ -263,15 +286,15 @@ function createEntranceScene() {
     });
     const leftHandle = new THREE.Mesh(handleGeo, handleMat);
     leftHandle.rotation.z = Math.PI / 2;
-    leftHandle.position.set(-0.4, 0, 0.12);
+    leftHandle.position.set(1.6, 0, 0.12);
     leftDoorPanel.add(leftHandle);
 
-    // Right door panel
+    // Right door panel - pivot on RIGHT edge for outward opening
     rightDoorPanel = new THREE.Group();
-    rightDoorPanel.position.set(0.1, 2.5, 0);
+    rightDoorPanel.position.set(2.15, 2.5, 0.1); // Position at right edge
 
     const rightDoor = new THREE.Mesh(leftDoorGeo, doorMat);
-    rightDoor.position.x = 1;
+    rightDoor.position.x = -1; // Door extends to the left from pivot
     rightDoor.castShadow = true;
     rightDoor.userData.clickable = true;
     rightDoor.userData.type = 'door';
@@ -279,7 +302,7 @@ function createEntranceScene() {
 
     const rightHandle = new THREE.Mesh(handleGeo, handleMat);
     rightHandle.rotation.z = Math.PI / 2;
-    rightHandle.position.set(0.4, 0, 0.12);
+    rightHandle.position.set(-1.6, 0, 0.12);
     rightDoorPanel.add(rightHandle);
 
     entranceDoor.add(leftDoorPanel);
@@ -287,6 +310,55 @@ function createEntranceScene() {
     scene.add(entranceDoor);
 
     console.log('✅ Entrance created');
+}
+
+function createMuseumSign() {
+    // Create "ART MUSEUM" text using simple geometry
+    const letterMat = new THREE.MeshStandardMaterial({
+        color: 0x8B7355,
+        roughness: 0.5,
+        metalness: 0.3
+    });
+
+    // Simple box-based letters for "ART MUSEUM"
+    const textGeo = new THREE.BoxGeometry(6, 0.4, 0.1);
+    const textBg = new THREE.Mesh(textGeo, new THREE.MeshStandardMaterial({
+        color: 0xA0907C,
+        roughness: 0.7,
+        metalness: 0.1
+    }));
+    textBg.position.set(0, 8.5, 0);
+    scene.add(textBg);
+
+    // Add simple letter shapes (A, R, T, M, U, S, E, U, M as boxes)
+    const letters = [
+        // A
+        { x: -2.5, y: 8.5, w: 0.3, h: 0.25 },
+        // R
+        { x: -1.8, y: 8.5, w: 0.3, h: 0.25 },
+        // T
+        { x: -1.1, y: 8.5, w: 0.3, h: 0.25 },
+        // Space
+        // M
+        { x: -0.2, y: 8.5, w: 0.4, h: 0.25 },
+        // U
+        { x: 0.5, y: 8.5, w: 0.3, h: 0.25 },
+        // S
+        { x: 1.1, y: 8.5, w: 0.3, h: 0.25 },
+        // E
+        { x: 1.7, y: 8.5, w: 0.3, h: 0.25 },
+        // U
+        { x: 2.3, y: 8.5, w: 0.3, h: 0.25 },
+        // M
+        { x: 2.9, y: 8.5, w: 0.4, h: 0.25 }
+    ];
+
+    letters.forEach(letter => {
+        const letterGeo = new THREE.BoxGeometry(letter.w, letter.h, 0.08);
+        const letterMesh = new THREE.Mesh(letterGeo, letterMat);
+        letterMesh.position.set(letter.x, letter.y, 0.05);
+        scene.add(letterMesh);
+    });
 }
 
 function createPillar(x, y, z) {
@@ -386,11 +458,42 @@ function createCorridorScene() {
     corridorGroup.push(rightWall);
     scene.add(rightWall);
 
+    // Front wall (end of corridor facing forward)
+    const frontWallGeo = new THREE.PlaneGeometry(10, 4.5);
+    const frontWall = new THREE.Mesh(frontWallGeo, wallMat);
+    frontWall.position.set(0, 2.25, 12.5);
+    frontWall.receiveShadow = true;
+    frontWall.visible = false;
+    corridorGroup.push(frontWall);
+    scene.add(frontWall);
+
+    // Back wall (behind camera)
+    const backWall = new THREE.Mesh(frontWallGeo, wallMat);
+    backWall.rotation.y = Math.PI;
+    backWall.position.set(0, 2.25, -12.5);
+    backWall.receiveShadow = true;
+    backWall.visible = false;
+    corridorGroup.push(backWall);
+    scene.add(backWall);
+
+    // Add decorative elements on front wall for depth
+    const doorwayGeo = new THREE.BoxGeometry(3, 4, 0.3);
+    const doorwayMat = new THREE.MeshStandardMaterial({
+        color: 0xC8B8A0,
+        roughness: 0.8,
+        metalness: 0.1
+    });
+    const doorway = new THREE.Mesh(doorwayGeo, doorwayMat);
+    doorway.position.set(0, 2, 12.4);
+    doorway.visible = false;
+    corridorGroup.push(doorway);
+    scene.add(doorway);
+
     // Create paintings on both walls
     createWallPaintings('left', -4.85, leftWallPaintings);
     createWallPaintings('right', 4.85, rightWallPaintings);
 
-    console.log('✅ Corridor created');
+    console.log('✅ Corridor created with depth');
 }
 
 function createWallPaintings(side, xPos, storageArray) {
@@ -520,7 +623,7 @@ function enterMuseum() {
 
     tooltip.classList.add('hidden');
 
-    // Animate doors opening
+    // Animate doors opening OUTWARD (向外打开)
     const duration = 1500;
     const startTime = Date.now();
 
@@ -529,44 +632,71 @@ function enterMuseum() {
         const t = Math.min(elapsed / duration, 1);
         const eased = easeInOutCubic(t);
 
-        // Doors swing outward
-        leftDoorPanel.rotation.y = eased * (Math.PI / 2.2);
-        rightDoorPanel.rotation.y = -eased * (Math.PI / 2.2);
+        // Doors swing outward toward camera (positive Z rotation)
+        leftDoorPanel.rotation.y = -eased * (Math.PI / 2.5); // Swing left outward
+        rightDoorPanel.rotation.y = eased * (Math.PI / 2.5); // Swing right outward
 
         if (t < 1) {
             requestAnimationFrame(animateDoorOpen);
         } else {
-            // Hide entrance, show corridor
-            setTimeout(() => {
-                entranceDoor.visible = false;
-                scene.background = new THREE.Color(0xFAF8F3);
-                scene.fog = new THREE.Fog(0xFAF8F3, 15, 30);
-                corridorGroup.forEach(obj => obj.visible = true);
-            }, 300);
+            // Start white light transition
+            createWhiteLightTransition();
         }
     }
 
     animateDoorOpen();
+}
 
-    // Move camera into corridor
+function createWhiteLightTransition() {
+    // Create white overlay for heaven/portal effect
+    const whiteFade = document.createElement('div');
+    whiteFade.style.position = 'fixed';
+    whiteFade.style.top = '0';
+    whiteFade.style.left = '0';
+    whiteFade.style.width = '100%';
+    whiteFade.style.height = '100%';
+    whiteFade.style.backgroundColor = 'white';
+    whiteFade.style.opacity = '0';
+    whiteFade.style.transition = 'opacity 0.8s ease-in';
+    whiteFade.style.zIndex = '999';
+    whiteFade.style.pointerEvents = 'none';
+    document.body.appendChild(whiteFade);
+
+    // Fade to white
     setTimeout(() => {
-        animateCamera(
-            camera.position.clone(),
-            new THREE.Vector3(0, 1.7, 0),
-            camera.rotation.clone(),
-            new THREE.Euler(0, 0, 0),
-            1200,
-            () => {
-                currentView = 'CORRIDOR';
-                isAnimating = false;
-                backBtn.classList.remove('hidden');
-                backBtn.textContent = '← Exit Museum';
-                wallHintLeft.classList.remove('hidden');
-                wallHintRight.classList.remove('hidden');
-                console.log('✅ Inside corridor');
-            }
-        );
-    }, 500);
+        whiteFade.style.opacity = '1';
+    }, 50);
+
+    // Transition scene during white out
+    setTimeout(() => {
+        entranceDoor.visible = false;
+        scene.background = new THREE.Color(0xFAF8F3);
+        scene.fog = new THREE.Fog(0xFAF8F3, 15, 30);
+        corridorGroup.forEach(obj => obj.visible = true);
+
+        // Move camera to corridor position
+        camera.position.set(0, 1.7, -5); // Start from back of corridor
+        camera.rotation.set(0, 0, 0);
+        camera.lookAt(0, 1.7, 0);
+    }, 800);
+
+    // Fade from white
+    setTimeout(() => {
+        whiteFade.style.transition = 'opacity 1s ease-out';
+        whiteFade.style.opacity = '0';
+    }, 1000);
+
+    // Complete transition
+    setTimeout(() => {
+        document.body.removeChild(whiteFade);
+        currentView = 'CORRIDOR';
+        isAnimating = false;
+        backBtn.classList.remove('hidden');
+        backBtn.textContent = '← Exit Museum';
+        wallHintLeft.classList.remove('hidden');
+        wallHintRight.classList.remove('hidden');
+        console.log('✅ Inside corridor');
+    }, 2000);
 }
 
 function viewWall(side) {
@@ -577,10 +707,12 @@ function viewWall(side) {
     wallHintLeft.classList.add('hidden');
     wallHintRight.classList.add('hidden');
 
+    // Position camera to see all 3 paintings clearly
+    // Camera should be in center of corridor, facing the wall
     const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
     const targetPos = side === 'left'
-        ? new THREE.Vector3(-2.5, 1.7, 0)
-        : new THREE.Vector3(2.5, 1.7, 0);
+        ? new THREE.Vector3(-3.2, 1.7, 0) // Closer to left wall, centered vertically
+        : new THREE.Vector3(3.2, 1.7, 0); // Closer to right wall, centered vertically
 
     animateCamera(
         camera.position.clone(),
@@ -592,7 +724,7 @@ function viewWall(side) {
             currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
             isAnimating = false;
             backBtn.textContent = '← Back to Corridor';
-            console.log(`✅ Viewing ${side} wall`);
+            console.log(`✅ Viewing ${side} wall - all 3 paintings visible`);
         }
     );
 }
@@ -818,8 +950,8 @@ function goBack() {
         const side = camera.position.x < 0 ? 'left' : 'right';
         const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
         const targetPos = side === 'left'
-            ? new THREE.Vector3(-2.5, 1.7, 0)
-            : new THREE.Vector3(2.5, 1.7, 0);
+            ? new THREE.Vector3(-3.2, 1.7, 0)
+            : new THREE.Vector3(3.2, 1.7, 0);
 
         isAnimating = true;
         animateCamera(
@@ -836,11 +968,11 @@ function goBack() {
         );
 
     } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
-        // Return to corridor center
+        // Return to corridor center - position to see both walls
         isAnimating = true;
         animateCamera(
             camera.position.clone(),
-            new THREE.Vector3(0, 1.7, 0),
+            new THREE.Vector3(0, 1.7, -5), // Back of corridor looking forward
             camera.rotation.clone(),
             new THREE.Euler(0, 0, 0),
             800,
