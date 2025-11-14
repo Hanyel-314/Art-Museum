@@ -157,9 +157,6 @@ function init() {
     // Start animation
     animate();
     console.log('🎉 Museum ready!');
-    console.log('Camera position:', camera.position);
-    console.log('Camera rotation:', camera.rotation);
-    console.log('Scene background:', scene.background);
 }
 
 // ============================================
@@ -258,18 +255,7 @@ function createEntranceScene() {
     entranceDoor.add(topFrame);
 
     scene.add(entranceDoor);
-
-    // DEBUG: Add a bright test cube to verify rendering
-    const testCube = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshBasicMaterial({ color: 0xFF0000 })
-    );
-    testCube.position.set(2, 2, 0);
-    scene.add(testCube);
-
     console.log('✅ Entrance created with dual doors');
-    console.log('Door position:', entranceDoor.position);
-    console.log('Scene children count:', scene.children.length);
 }
 
 function createCorridorScene() {
