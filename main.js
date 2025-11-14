@@ -476,24 +476,147 @@ function createCorridorScene() {
     corridorGroup.push(backWall);
     scene.add(backWall);
 
-    // Add decorative elements on front wall for depth
-    const doorwayGeo = new THREE.BoxGeometry(3, 4, 0.3);
-    const doorwayMat = new THREE.MeshStandardMaterial({
-        color: 0xC8B8A0,
-        roughness: 0.8,
-        metalness: 0.1
-    });
-    const doorway = new THREE.Mesh(doorwayGeo, doorwayMat);
-    doorway.position.set(0, 2, 12.4);
-    doorway.visible = false;
-    corridorGroup.push(doorway);
-    scene.add(doorway);
+    // Add perspective elements - decorative moldings that narrow toward the front
+    // Left side molding
+    for (let i = 0; i < 5; i++) {
+        const z = -10 + (i * 5);
+        const moldingGeo = new THREE.BoxGeometry(0.1, 0.1, 4.5);
+        const moldingMat = new THREE.MeshStandardMaterial({
+            color: 0xC8B8A0,
+            roughness: 0.7,
+            metalness: 0.2
+        });
+        const molding = new THREE.Mesh(moldingGeo, moldingMat);
+        molding.position.set(-5, 3.8, z);
+        molding.visible = false;
+        corridorGroup.push(molding);
+        scene.add(molding);
+
+        // Floor molding
+        const floorMolding = new THREE.Mesh(moldingGeo, moldingMat);
+        floorMolding.position.set(-5, 0.1, z);
+        floorMolding.visible = false;
+        corridorGroup.push(floorMolding);
+        scene.add(floorMolding);
+    }
+
+    // Right side molding
+    for (let i = 0; i < 5; i++) {
+        const z = -10 + (i * 5);
+        const moldingGeo = new THREE.BoxGeometry(0.1, 0.1, 4.5);
+        const moldingMat = new THREE.MeshStandardMaterial({
+            color: 0xC8B8A0,
+            roughness: 0.7,
+            metalness: 0.2
+        });
+        const molding = new THREE.Mesh(moldingGeo, moldingMat);
+        molding.position.set(5, 3.8, z);
+        molding.visible = false;
+        corridorGroup.push(molding);
+        scene.add(molding);
+
+        // Floor molding
+        const floorMolding = new THREE.Mesh(moldingGeo, moldingMat);
+        floorMolding.position.set(5, 0.1, z);
+        floorMolding.visible = false;
+        corridorGroup.push(floorMolding);
+        scene.add(floorMolding);
+    }
+
+    // Create sculpture at the end of corridor
+    createCorridorSculpture();
 
     // Create paintings on both walls
     createWallPaintings('left', -4.85, leftWallPaintings);
     createWallPaintings('right', 4.85, rightWallPaintings);
 
-    console.log('✅ Corridor created with depth');
+    console.log('✅ Corridor created with depth and perspective');
+}
+
+function createCorridorSculpture() {
+    // Create an elegant classical sculpture at the end of the corridor
+    const sculptureGroup = new THREE.Group();
+    sculptureGroup.position.set(0, 0, 10); // Position at corridor end
+    sculptureGroup.visible = false;
+
+    // Pedestal base
+    const pedestalGeo = new THREE.CylinderGeometry(0.6, 0.7, 0.3, 16);
+    const pedestalMat = new THREE.MeshStandardMaterial({
+        color: 0xD9CEB8,
+        roughness: 0.6,
+        metalness: 0.2
+    });
+    const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
+    pedestal.position.y = 0.15;
+    pedestal.castShadow = true;
+    pedestal.receiveShadow = true;
+    sculptureGroup.add(pedestal);
+
+    // Pedestal column
+    const columnGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 16);
+    const column = new THREE.Mesh(columnGeo, pedestalMat);
+    column.position.y = 0.9;
+    column.castShadow = true;
+    column.receiveShadow = true;
+    sculptureGroup.add(column);
+
+    // Top platform
+    const platformGeo = new THREE.CylinderGeometry(0.6, 0.5, 0.15, 16);
+    const platform = new THREE.Mesh(platformGeo, pedestalMat);
+    platform.position.y = 1.575;
+    platform.castShadow = true;
+    platform.receiveShadow = true;
+    sculptureGroup.add(platform);
+
+    // Sculpture - abstract form (combination of spheres and cylinders)
+    const sculptureMat = new THREE.MeshStandardMaterial({
+        color: 0xF5F5F0, // Marble white
+        roughness: 0.3,
+        metalness: 0.1
+    });
+
+    // Main body - tall cylinder
+    const bodyGeo = new THREE.CylinderGeometry(0.15, 0.18, 0.8, 12);
+    const body = new THREE.Mesh(bodyGeo, sculptureMat);
+    body.position.y = 2.05;
+    body.castShadow = true;
+    sculptureGroup.add(body);
+
+    // Head - sphere
+    const headGeo = new THREE.SphereGeometry(0.2, 16, 16);
+    const head = new THREE.Mesh(headGeo, sculptureMat);
+    head.position.y = 2.6;
+    head.castShadow = true;
+    sculptureGroup.add(head);
+
+    // Left arm - cylinder at angle
+    const armGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.5, 10);
+    const leftArm = new THREE.Mesh(armGeo, sculptureMat);
+    leftArm.position.set(-0.25, 2.1, 0);
+    leftArm.rotation.z = Math.PI / 4;
+    leftArm.castShadow = true;
+    sculptureGroup.add(leftArm);
+
+    // Right arm
+    const rightArm = new THREE.Mesh(armGeo, sculptureMat);
+    rightArm.position.set(0.25, 2.1, 0);
+    rightArm.rotation.z = -Math.PI / 4;
+    rightArm.castShadow = true;
+    sculptureGroup.add(rightArm);
+
+    // Spotlight on sculpture
+    const sculptureLight = new THREE.SpotLight(0xFFF4E0, 1.0, 10, Math.PI / 6, 0.5);
+    sculptureLight.position.set(0, 4.2, 9);
+    sculptureLight.target = sculptureGroup;
+    sculptureLight.visible = false;
+    sculptureLight.castShadow = true;
+    corridorGroup.push(sculptureLight);
+    scene.add(sculptureLight);
+
+    corridorGroup.push(sculptureGroup);
+    scene.add(sculptureGroup);
+
+    console.log('✅ Sculpture created at corridor end');
 }
 
 function createWallPaintings(side, xPos, storageArray) {
