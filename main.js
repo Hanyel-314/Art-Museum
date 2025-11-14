@@ -196,10 +196,8 @@ function createEntranceScene() {
 
     const leftPanel = new THREE.Mesh(
         new THREE.BoxGeometry(1.5, 4, 0.15),
-        new THREE.MeshStandardMaterial({
-            color: 0x3D2817,
-            roughness: 0.7,
-            metalness: 0.1
+        new THREE.MeshLambertMaterial({
+            color: 0x8B4513  // Brighter brown for visibility
         })
     );
     leftPanel.position.x = -0.75;
@@ -210,10 +208,8 @@ function createEntranceScene() {
     // Left door brass handle
     const leftHandle = new THREE.Mesh(
         new THREE.CylinderGeometry(0.03, 0.03, 0.3, 8),
-        new THREE.MeshStandardMaterial({
-            color: 0xB8860B,
-            metalness: 0.8,
-            roughness: 0.2
+        new THREE.MeshLambertMaterial({
+            color: 0xFFD700  // Bright gold
         })
     );
     leftHandle.rotation.z = Math.PI / 2;
@@ -226,10 +222,8 @@ function createEntranceScene() {
 
     const rightPanel = new THREE.Mesh(
         new THREE.BoxGeometry(1.5, 4, 0.15),
-        new THREE.MeshStandardMaterial({
-            color: 0x3D2817,
-            roughness: 0.7,
-            metalness: 0.1
+        new THREE.MeshLambertMaterial({
+            color: 0x8B4513  // Brighter brown for visibility
         })
     );
     rightPanel.position.x = 0.75;
@@ -240,10 +234,8 @@ function createEntranceScene() {
     // Right door brass handle
     const rightHandle = new THREE.Mesh(
         new THREE.CylinderGeometry(0.03, 0.03, 0.3, 8),
-        new THREE.MeshStandardMaterial({
-            color: 0xB8860B,
-            metalness: 0.8,
-            roughness: 0.2
+        new THREE.MeshLambertMaterial({
+            color: 0xFFD700  // Bright gold
         })
     );
     rightHandle.rotation.z = Math.PI / 2;
@@ -254,10 +246,8 @@ function createEntranceScene() {
     entranceDoor.add(rightDoor);
 
     // Door frame
-    const frameMat = new THREE.MeshStandardMaterial({
-        color: 0xB8860B,
-        metalness: 0.6,
-        roughness: 0.3
+    const frameMat = new THREE.MeshLambertMaterial({
+        color: 0xFFD700  // Bright gold
     });
 
     const topFrame = new THREE.Mesh(
