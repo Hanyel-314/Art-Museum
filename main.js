@@ -106,6 +106,7 @@ function init() {
     // Camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 1.6, 5);
+    camera.lookAt(0, 2, 0); // Look at the door
 
     // Renderer
     const canvas = document.getElementById('museum-canvas');
@@ -120,12 +121,17 @@ function init() {
     mouse = new THREE.Vector2();
 
     // Lights - bright for visibility
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight.position.set(5, 10, 5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 10, 7);
     scene.add(directionalLight);
+
+    // Additional front light for entrance
+    const frontLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    frontLight.position.set(0, 3, 10);
+    scene.add(frontLight);
 
     console.log('✅ Scene, camera, renderer ready');
 
@@ -151,6 +157,9 @@ function init() {
     // Start animation
     animate();
     console.log('🎉 Museum ready!');
+    console.log('Camera position:', camera.position);
+    console.log('Camera rotation:', camera.rotation);
+    console.log('Scene background:', scene.background);
 }
 
 // ============================================
@@ -259,7 +268,18 @@ function createEntranceScene() {
     entranceDoor.add(topFrame);
 
     scene.add(entranceDoor);
+
+    // DEBUG: Add a bright test cube to verify rendering
+    const testCube = new THREE.Mesh(
+        new THREE.BoxGeometry(1, 1, 1),
+        new THREE.MeshBasicMaterial({ color: 0xFF0000 })
+    );
+    testCube.position.set(2, 2, 0);
+    scene.add(testCube);
+
     console.log('✅ Entrance created with dual doors');
+    console.log('Door position:', entranceDoor.position);
+    console.log('Scene children count:', scene.children.length);
 }
 
 function createCorridorScene() {
