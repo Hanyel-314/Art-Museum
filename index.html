@@ -943,33 +943,62 @@
         // ============================================
 
         function createMarbleTexture() {
-            // Create a procedural marble texture using canvas
+            // Create a high-quality procedural marble texture using canvas
             const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 512;
+            canvas.width = 1024; // Higher resolution for better quality
+            canvas.height = 1024;
             const ctx = canvas.getContext('2d');
 
-            // Base cream/beige color
-            ctx.fillStyle = '#F5F0E8';
+            // Base warm cream/beige color
+            ctx.fillStyle = '#F5EDE0';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Add marble veins (darker brownish-grey lines)
-            ctx.strokeStyle = 'rgba(180, 170, 160, 0.3)';
-            ctx.lineWidth = 2;
+            // Add subtle color variation across the surface
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, 'rgba(250, 245, 235, 0.3)');
+            gradient.addColorStop(0.5, 'rgba(245, 237, 224, 0.2)');
+            gradient.addColorStop(1, 'rgba(240, 232, 220, 0.3)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Create flowing veins
+            // Create more prominent marble veins (darker brownish-grey)
+            ctx.strokeStyle = 'rgba(160, 145, 130, 0.5)'; // Higher opacity for visibility
+            ctx.lineWidth = 3;
+
+            // Major flowing veins (organic, diagonal patterns)
+            for (let i = 0; i < 12; i++) {
+                ctx.beginPath();
+                const startX = Math.random() * canvas.width;
+                const startY = Math.random() * canvas.height;
+                ctx.moveTo(startX, startY);
+
+                // Create flowing organic curves
+                for (let j = 0; j < 6; j++) {
+                    const cpX1 = startX + Math.random() * 300 - 150;
+                    const cpY1 = startY + Math.random() * 300 - 150;
+                    const cpX2 = startX + Math.random() * 400 - 200;
+                    const cpY2 = startY + Math.random() * 400 - 200;
+                    const endX = startX + Math.random() * 500 - 250;
+                    const endY = startY + Math.random() * 500 - 250;
+                    ctx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, endX, endY);
+                }
+                ctx.stroke();
+            }
+
+            // Add thinner darker veins for depth
+            ctx.strokeStyle = 'rgba(140, 125, 110, 0.4)';
+            ctx.lineWidth = 2;
             for (let i = 0; i < 8; i++) {
                 ctx.beginPath();
                 const startX = Math.random() * canvas.width;
                 const startY = Math.random() * canvas.height;
                 ctx.moveTo(startX, startY);
 
-                // Create organic curves
-                for (let j = 0; j < 5; j++) {
+                for (let j = 0; j < 4; j++) {
                     const cpX1 = startX + Math.random() * 200 - 100;
                     const cpY1 = startY + Math.random() * 200 - 100;
-                    const cpX2 = startX + Math.random() * 200 - 100;
-                    const cpY2 = startY + Math.random() * 200 - 100;
+                    const cpX2 = startX + Math.random() * 250 - 125;
+                    const cpY2 = startY + Math.random() * 250 - 125;
                     const endX = startX + Math.random() * 300 - 150;
                     const endY = startY + Math.random() * 300 - 150;
                     ctx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, endX, endY);
@@ -977,32 +1006,32 @@
                 ctx.stroke();
             }
 
-            // Add lighter veins for depth
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < 5; i++) {
+            // Add lighter white/cream veins for highlights
+            ctx.strokeStyle = 'rgba(255, 252, 245, 0.6)';
+            ctx.lineWidth = 2.5;
+            for (let i = 0; i < 10; i++) {
                 ctx.beginPath();
                 const startX = Math.random() * canvas.width;
                 const startY = Math.random() * canvas.height;
                 ctx.moveTo(startX, startY);
 
-                for (let j = 0; j < 3; j++) {
-                    const cpX1 = startX + Math.random() * 150 - 75;
-                    const cpY1 = startY + Math.random() * 150 - 75;
-                    const cpX2 = startX + Math.random() * 150 - 75;
-                    const cpY2 = startY + Math.random() * 150 - 75;
-                    const endX = startX + Math.random() * 200 - 100;
-                    const endY = startY + Math.random() * 200 - 100;
+                for (let j = 0; j < 4; j++) {
+                    const cpX1 = startX + Math.random() * 180 - 90;
+                    const cpY1 = startY + Math.random() * 180 - 90;
+                    const cpX2 = startX + Math.random() * 220 - 110;
+                    const cpY2 = startY + Math.random() * 220 - 110;
+                    const endX = startX + Math.random() * 260 - 130;
+                    const endY = startY + Math.random() * 260 - 130;
                     ctx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, endX, endY);
                 }
                 ctx.stroke();
             }
 
-            // Add subtle noise/texture
+            // Add very subtle noise for texture (less than before to avoid graininess)
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
             for (let i = 0; i < data.length; i += 4) {
-                const noise = (Math.random() - 0.5) * 10;
+                const noise = (Math.random() - 0.5) * 6; // Reduced noise
                 data[i] += noise;     // R
                 data[i + 1] += noise; // G
                 data[i + 2] += noise; // B
@@ -1033,27 +1062,27 @@
                 side: THREE.DoubleSide
             });
 
-            // Floor - polished marble with tiles
+            // Floor - polished marble with high-quality texture
             const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
 
             // Create marble texture procedurally
             const marbleTexture = createMarbleTexture();
             marbleTexture.wrapS = THREE.RepeatWrapping;
             marbleTexture.wrapT = THREE.RepeatWrapping;
-            marbleTexture.repeat.set(corridorWidth / 2, corridorLength / 2); // Large tiles
+            marbleTexture.repeat.set(3, 7.5); // Large marble slabs (each ~4m x 4m)
 
             const floorMat = new THREE.MeshStandardMaterial({
                 map: marbleTexture,
-                color: 0xFFFBF5, // Warm light beige tint
-                roughness: 0.25,
-                metalness: 0.05,
-                envMapIntensity: 0.6,
+                color: 0xFFFDF8, // Very light warm tint to enhance marble
+                roughness: 0.18, // More polished/glossy
+                metalness: 0.08, // Slight reflectivity
+                envMapIntensity: 0.8, // Enhanced reflections from chandeliers
                 side: THREE.DoubleSide
             });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             floor.position.set(0, 0, -corridorLength / 2); // Center at z=-15, y=0 (main floor at ground level, entrance ground is at -0.1)
-            floor.receiveShadow = true; // Enable shadows for realistic lighting
+            floor.receiveShadow = false; // Disable to remove dark shadow blob
             floor.visible = false;
             corridorGroup.push(floor);
             scene.add(floor);
@@ -1257,31 +1286,37 @@
         }
 
         function createGoldMoldings(corridorLength, corridorWidth) {
-            const goldMat = new THREE.MeshStandardMaterial({
-                color: 0xD4AF37,
-                roughness: 0.3,
-                metalness: 0.8
+            // Horizontal wooden/gold rails that extend the full length of the corridor
+            const railMat = new THREE.MeshStandardMaterial({
+                color: 0x8B6F47, // Warm wood tone instead of bright gold
+                roughness: 0.6,
+                metalness: 0.2
             });
 
             for (let side = -1; side <= 1; side += 2) {
-                const topMoldingGeo = new THREE.BoxGeometry(0.1, 0.15, corridorLength);
-                const topMolding = new THREE.Mesh(topMoldingGeo, goldMat);
-                topMolding.position.set(side * (corridorWidth / 2), 5.5, 0);
-                topMolding.visible = false;
-                corridorGroup.push(topMolding);
-                scene.add(topMolding);
+                // Create rails that span the entire corridor length
+                const railGeo = new THREE.BoxGeometry(0.08, 0.12, corridorLength);
 
-                const midMolding = new THREE.Mesh(topMoldingGeo, goldMat);
-                midMolding.position.set(side * (corridorWidth / 2), 3, 0);
-                midMolding.visible = false;
-                corridorGroup.push(midMolding);
-                scene.add(midMolding);
+                // Top rail (upper third of wall)
+                const topRail = new THREE.Mesh(railGeo, railMat);
+                topRail.position.set(side * (corridorWidth / 2 - 0.04), 4.2, -corridorLength / 2);
+                topRail.visible = false;
+                corridorGroup.push(topRail);
+                scene.add(topRail);
 
-                const baseMolding = new THREE.Mesh(topMoldingGeo, goldMat);
-                baseMolding.position.set(side * (corridorWidth / 2), 0.5, 0);
-                baseMolding.visible = false;
-                corridorGroup.push(baseMolding);
-                scene.add(baseMolding);
+                // Mid rail (at painting height)
+                const midRail = new THREE.Mesh(railGeo, railMat);
+                midRail.position.set(side * (corridorWidth / 2 - 0.04), 2.5, -corridorLength / 2);
+                midRail.visible = false;
+                corridorGroup.push(midRail);
+                scene.add(midRail);
+
+                // Base rail (chair rail height)
+                const baseRail = new THREE.Mesh(railGeo, railMat);
+                baseRail.position.set(side * (corridorWidth / 2 - 0.04), 0.8, -corridorLength / 2);
+                baseRail.visible = false;
+                corridorGroup.push(baseRail);
+                scene.add(baseRail);
             }
         }
 
