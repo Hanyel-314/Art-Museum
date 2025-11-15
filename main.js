@@ -146,7 +146,7 @@ function init() {
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
 
-    // Lighting - warm outdoor lighting
+    // Lighting - warm outdoor lighting for entrance
     const ambientLight = new THREE.AmbientLight(0xFFF8E7, 0.6);
     scene.add(ambientLight);
 
@@ -165,6 +165,12 @@ function init() {
     const fillLight = new THREE.DirectionalLight(0xB0C4DE, 0.4);
     fillLight.position.set(-5, 5, 5);
     scene.add(fillLight);
+
+    // Warm ambient light for corridor (will be visible when corridor is shown)
+    const corridorAmbient = new THREE.AmbientLight(0xFFF1D4, 0.4);
+    corridorAmbient.visible = false;
+    corridorGroup.push(corridorAmbient);
+    scene.add(corridorAmbient);
 
     console.log('✅ Scene, camera, renderer ready');
 
@@ -425,38 +431,39 @@ function createCorridorScene() {
     corridorGroup.push(floor);
     scene.add(floor);
 
-    // Baroque painted ceiling
+    // Clean, elegant ceiling - single continuous plane
     const ceilingGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
     const ceilingMat = new THREE.MeshStandardMaterial({
-        color: 0xE8D4B8, // Warm fresco color
-        roughness: 0.9,
+        color: 0xFAF6F0, // Soft off-white
+        roughness: 0.85,
         metalness: 0
     });
     const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
     ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.y = 6; // Higher ceiling
+    ceiling.position.y = 6;
     ceiling.visible = false;
     corridorGroup.push(ceiling);
     scene.add(ceiling);
 
-    // Add baroque ceiling fresco panels
-    createCeilingFrescoes(corridorLength);
+    // Optional: subtle recessed area along central axis (coffered effect)
+    const recessGeo = new THREE.PlaneGeometry(3, corridorLength);
+    const recessMat = new THREE.MeshStandardMaterial({
+        color: 0xF0EBE0, // Slightly darker for depth
+        roughness: 0.9,
+        metalness: 0
+    });
+    const recess = new THREE.Mesh(recessGeo, recessMat);
+    recess.rotation.x = Math.PI / 2;
+    recess.position.y = 5.95; // Just below main ceiling
+    recess.visible = false;
+    corridorGroup.push(recess);
+    scene.add(recess);
 
-    // Crystal chandeliers along the corridor - adjusted for shorter space
-    for (let i = -6; i <= 6; i += 6) {
-        createChandelier(0, 5.5, i);
-    }
-
-    // Warm museum lighting from chandeliers
-    const warmLightColor = 0xFFE8C0; // Warm golden light
-    for (let i = -8; i <= 8; i += 4) {
-        const chandLight = new THREE.PointLight(warmLightColor, 0.8, 15);
-        chandLight.position.set(0, 5.2, i);
-        chandLight.visible = false;
-        chandLight.castShadow = true;
-        corridorGroup.push(chandLight);
-        scene.add(chandLight);
-    }
+    // Elegant crystal chandeliers - 3 along the corridor
+    // Near entrance, middle, and near sculpture
+    createChandelier(0, 5.2, -5);   // Near entrance
+    createChandelier(0, 5.2, -15);  // Middle
+    createChandelier(0, 5.2, -25);  // Near sculpture
 
     // Walls with ornate decorations
     const wallMat = new THREE.MeshStandardMaterial({
@@ -521,86 +528,101 @@ function createCorridorScene() {
     console.log('✅ Baroque corridor created with dramatic perspective');
 }
 
-function createCeilingFrescoes(corridorLength) {
-    // Create baroque fresco panels on ceiling
-    const frescoPanels = [
-        { color: 0xD4A574, z: -6 }, // Golden/amber tones
-        { color: 0xB8C4D8, z: 0 },  // Sky blue
-        { color: 0xE8C4A8, z: 6 }   // Peachy tones
-    ];
-
-    frescoPanels.forEach(panel => {
-        const panelGeo = new THREE.PlaneGeometry(8, 8);
-        const panelMat = new THREE.MeshStandardMaterial({
-            color: panel.color,
-            roughness: 0.9,
-            metalness: 0,
-            emissive: panel.color,
-            emissiveIntensity: 0.1
-        });
-        const fresco = new THREE.Mesh(panelGeo, panelMat);
-        fresco.rotation.x = Math.PI / 2;
-        fresco.position.set(0, 5.95, panel.z);
-        fresco.visible = false;
-        corridorGroup.push(fresco);
-        scene.add(fresco);
-
-        // Gold border around fresco panel
-        const borderGeo = new THREE.TorusGeometry(4.2, 0.08, 8, 24);
-        const borderMat = new THREE.MeshStandardMaterial({
-            color: 0xFFD700,
-            roughness: 0.3,
-            metalness: 0.9
-        });
-        const border = new THREE.Mesh(borderGeo, borderMat);
-        border.rotation.x = Math.PI / 2;
-        border.position.set(0, 5.9, panel.z);
-        border.visible = false;
-        corridorGroup.push(border);
-        scene.add(border);
-    });
-
-    console.log('✅ Ceiling frescoes created');
-}
 
 function createChandelier(x, y, z) {
     const chandelierGroup = new THREE.Group();
     chandelierGroup.position.set(x, y, z);
     chandelierGroup.visible = false;
 
-    // Gold base
-    const baseGeo = new THREE.CylinderGeometry(0.3, 0.4, 0.2, 12);
+    // Materials
     const goldMat = new THREE.MeshStandardMaterial({
-        color: 0xFFD700,
+        color: 0xD4AF37, // Rich gold
         roughness: 0.2,
         metalness: 0.9
     });
-    const base = new THREE.Mesh(baseGeo, goldMat);
-    chandelierGroup.add(base);
 
-    // Crystal elements
     const crystalMat = new THREE.MeshStandardMaterial({
-        color: 0xFFFFFF,
-        roughness: 0.1,
-        metalness: 0.3,
+        color: 0xE0F8FF, // Slight blue tint
+        roughness: 0.05,
+        metalness: 0.1,
         transparent: true,
-        opacity: 0.9
+        opacity: 0.85,
+        envMapIntensity: 1.5
     });
 
-    // Hanging crystals in a circle
-    for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
-        const radius = 0.5;
-        const crystalGeo = new THREE.ConeGeometry(0.05, 0.3, 6);
-        const crystal = new THREE.Mesh(crystalGeo, crystalMat);
-        crystal.position.set(
-            Math.cos(angle) * radius,
-            -0.3,
-            Math.sin(angle) * radius
-        );
-        crystal.rotation.x = Math.PI;
-        chandelierGroup.add(crystal);
-    }
+    // Ceiling plate (attachment point)
+    const plateGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.05, 16);
+    const plate = new THREE.Mesh(plateGeo, goldMat);
+    plate.position.y = 0.4;
+    chandelierGroup.add(plate);
+
+    // Central stem (vertical rod)
+    const stemGeo = new THREE.CylinderGeometry(0.03, 0.03, 1.2, 12);
+    const stem = new THREE.Mesh(stemGeo, goldMat);
+    stem.position.y = -0.2;
+    chandelierGroup.add(stem);
+
+    // Decorative top sphere
+    const topSphereGeo = new THREE.SphereGeometry(0.08, 12, 12);
+    const topSphere = new THREE.Mesh(topSphereGeo, goldMat);
+    topSphere.position.y = 0.35;
+    chandelierGroup.add(topSphere);
+
+    // Create 4 tiers of rings with hanging crystals
+    const tiers = [
+        { y: -0.2, radius: 0.6, crystalCount: 8, crystalLength: 0.35 },
+        { y: -0.45, radius: 0.5, crystalCount: 6, crystalLength: 0.3 },
+        { y: -0.65, radius: 0.4, crystalCount: 6, crystalLength: 0.25 },
+        { y: -0.8, radius: 0.25, crystalCount: 4, crystalLength: 0.2 }
+    ];
+
+    tiers.forEach(tier => {
+        // Gold ring (horizontal hoop)
+        const ringGeo = new THREE.TorusGeometry(tier.radius, 0.02, 8, 24);
+        const ring = new THREE.Mesh(ringGeo, goldMat);
+        ring.position.y = tier.y;
+        ring.rotation.x = Math.PI / 2;
+        chandelierGroup.add(ring);
+
+        // Hanging crystals from this ring
+        for (let i = 0; i < tier.crystalCount; i++) {
+            const angle = (i / tier.crystalCount) * Math.PI * 2;
+            const xPos = Math.cos(angle) * tier.radius;
+            const zPos = Math.sin(angle) * tier.radius;
+
+            // Crystal pendant (elongated cone)
+            const crystalGeo = new THREE.ConeGeometry(0.04, tier.crystalLength, 6);
+            const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+            crystal.position.set(xPos, tier.y - tier.crystalLength / 2 - 0.05, zPos);
+            crystal.rotation.x = Math.PI;
+            chandelierGroup.add(crystal);
+
+            // Small connector sphere
+            const connectorGeo = new THREE.SphereGeometry(0.03, 8, 8);
+            const connector = new THREE.Mesh(connectorGeo, crystalMat);
+            connector.position.set(xPos, tier.y - 0.02, zPos);
+            chandelierGroup.add(connector);
+        }
+    });
+
+    // Central decorative bottom piece
+    const bottomOrbGeo = new THREE.SphereGeometry(0.12, 16, 16);
+    const bottomOrb = new THREE.Mesh(bottomOrbGeo, crystalMat);
+    bottomOrb.position.y = -0.95;
+    chandelierGroup.add(bottomOrb);
+
+    // Final crystal drop
+    const finalCrystalGeo = new THREE.ConeGeometry(0.05, 0.25, 8);
+    const finalCrystal = new THREE.Mesh(finalCrystalGeo, crystalMat);
+    finalCrystal.position.y = -1.2;
+    finalCrystal.rotation.x = Math.PI;
+    chandelierGroup.add(finalCrystal);
+
+    // Warm point light at center
+    const chandLight = new THREE.PointLight(0xFFF4DD, 1.2, 12);
+    chandLight.position.y = -0.5;
+    chandLight.castShadow = false; // Disable for performance
+    chandelierGroup.add(chandLight);
 
     corridorGroup.push(chandelierGroup);
     scene.add(chandelierGroup);
