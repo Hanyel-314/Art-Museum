@@ -241,9 +241,9 @@ function createEntranceScene() {
         scene.add(relief);
     }
 
-    // Pillars
-    createPillar(-4.5, 0, 0);
-    createPillar(4.5, 0, 0);
+    // Pillars - moved to entrance area only, away from corridor
+    createPillar(-4.5, 0, -1);
+    createPillar(4.5, 0, -1);
 
     // Museum door assembly
     entranceDoor = new THREE.Group();
@@ -821,7 +821,7 @@ function createWallPaintings(side, xPos, storageArray) {
     const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
 
     artworks.forEach((artwork, i) => {
-        const zPos = -6 + (i * 6); // Spacing: -6, 0, 6 (better for 40m corridor)
+        const zPos = -12 + (i * 6); // Spacing: -12, -6, 0 (closer to camera, evenly distributed)
 
         const paintingGroup = new THREE.Group();
         paintingGroup.position.set(xPos, 2.2, zPos);
@@ -1027,16 +1027,23 @@ function viewWall(side) {
     wallHintLeft.classList.add('hidden');
     wallHintRight.classList.add('hidden');
 
-    // Simple camera movement: move to center, face the wall
+    // Smooth camera movement: move to center without clipping through geometry
     const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-    const targetPos = new THREE.Vector3(0, 2.2, 0); // Center of corridor, higher up
+    const targetPos = new THREE.Vector3(0, 2.2, -6); // Center of paintings, elevated
+
+    // First rotate camera, then move (avoids clipping)
+    const midRotation = new THREE.Euler(
+        camera.rotation.x,
+        targetAngle * 0.5, // Halfway rotation
+        camera.rotation.z
+    );
 
     animateCamera(
         camera.position.clone(),
         targetPos,
         camera.rotation.clone(),
         new THREE.Euler(0, targetAngle, 0),
-        1000,
+        1200, // Slower transition for smoothness
         () => {
             currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
             isAnimating = false;
@@ -1267,7 +1274,7 @@ function goBack() {
         // Determine which wall we were viewing based on camera rotation
         const side = Math.abs(camera.rotation.y - Math.PI / 2) < 0.1 ? 'left' : 'right';
         const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-        const targetPos = new THREE.Vector3(0, 2.2, 0);
+        const targetPos = new THREE.Vector3(0, 2.2, -6);
 
         isAnimating = true;
         animateCamera(
@@ -1275,7 +1282,7 @@ function goBack() {
             targetPos,
             camera.rotation.clone(),
             new THREE.Euler(0, targetAngle, 0),
-            800,
+            1000,
             () => {
                 currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
                 isAnimating = false;
