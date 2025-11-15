@@ -1546,43 +1546,43 @@
         }
 
         function createDecorativeFrames(side, xPos) {
-            // Non-interactive decorative frames to enrich the gallery walls
-            // Placed further down the corridor (after the main interactive paintings)
+            // Back-row decorative frames that match the main interactive paintings
+            // Placed further down the corridor (continuing the same spacing pattern)
             const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
 
-            // Define decorative frames with varied sizes and positions
+            // Define decorative frames with SAME dimensions as main paintings
+            // Continuing the evenly-spaced pattern: z = -20, -25, -30 (5 units apart)
             const decorativeFrames = [
-                { z: -18, width: 1.8, height: 1.8, yOffset: 0, color: 0x9B8B7E },
-                { z: -21, width: 1.6, height: 2.0, yOffset: 0.2, color: 0xA89080 },
-                { z: -24, width: 1.9, height: 1.7, yOffset: -0.15, color: 0x8E7E6F }
+                { z: -20, title: "Landscape I", color: 0x9B8B7E },
+                { z: -25, title: "Portrait II", color: 0xA89080 },
+                { z: -30, title: "Still Life III", color: 0x8E7E6F }
             ];
 
             decorativeFrames.forEach((config) => {
                 const frameGroup = new THREE.Group();
-                frameGroup.position.set(xPos, 2.5 + config.yOffset, config.z);
+                frameGroup.position.set(xPos, 2.5, config.z); // SAME vertical height as main paintings
                 frameGroup.rotation.y = rotation;
                 frameGroup.visible = false;
                 // NO clickable userData - these are purely decorative
 
-                // Canvas with muted abstract color
-                const canvasGeo = new THREE.PlaneGeometry(config.width, config.height);
+                // Canvas - SAME SIZE as main paintings (2.2 × 2.2)
+                const canvasGeo = new THREE.PlaneGeometry(2.2, 2.2);
                 const canvasMat = new THREE.MeshStandardMaterial({
                     color: config.color,
-                    roughness: 0.8,
-                    metalness: 0.05,
-                    opacity: 0.9,
-                    transparent: true
+                    roughness: 0.7,
+                    metalness: 0
+                    // NO transparency - fully opaque so wooden bars can't be seen through
                 });
                 const canvas = new THREE.Mesh(canvasGeo, canvasMat);
                 canvas.position.z = 0.03;
                 frameGroup.add(canvas);
 
-                // Glass overlay (lighter than main paintings)
-                const glassGeo = new THREE.PlaneGeometry(config.width + 0.1, config.height + 0.1);
+                // Glass - SAME SIZE as main paintings
+                const glassGeo = new THREE.PlaneGeometry(2.3, 2.3);
                 const glassMat = new THREE.MeshStandardMaterial({
                     color: 0xFFFFFF,
                     transparent: true,
-                    opacity: 0.05,
+                    opacity: 0.08,
                     roughness: 0.05,
                     metalness: 0.2
                 });
@@ -1590,56 +1590,70 @@
                 glass.position.z = 0.08;
                 frameGroup.add(glass);
 
-                // Gold frame (slightly narrower than main paintings)
-                const frameColor = 0xC9A961; // Slightly muted gold
+                // Gold frame - SAME dimensions as main paintings
+                const frameColor = 0xD4AF37; // Same gold as main paintings
                 const frameMat = new THREE.MeshStandardMaterial({
                     color: frameColor,
-                    roughness: 0.4,
-                    metalness: 0.7
+                    roughness: 0.3,
+                    metalness: 0.8
                 });
 
-                const frameThick = 0.1;
-                const frameDepth = 0.12;
-                const frameExtend = (config.width + config.height) / 20; // Scale with size
+                const frameThick = 0.12;
+                const frameDepth = 0.15;
 
                 const topFrame = new THREE.Mesh(
-                    new THREE.BoxGeometry(config.width + frameExtend, frameThick, frameDepth),
+                    new THREE.BoxGeometry(2.5, frameThick, frameDepth),
                     frameMat
                 );
-                topFrame.position.y = config.height / 2 + frameThick / 2;
+                topFrame.position.y = 1.19;
                 frameGroup.add(topFrame);
 
                 const bottomFrame = new THREE.Mesh(
-                    new THREE.BoxGeometry(config.width + frameExtend, frameThick, frameDepth),
+                    new THREE.BoxGeometry(2.5, frameThick, frameDepth),
                     frameMat
                 );
-                bottomFrame.position.y = -(config.height / 2 + frameThick / 2);
+                bottomFrame.position.y = -1.19;
                 frameGroup.add(bottomFrame);
 
                 const leftFrame = new THREE.Mesh(
-                    new THREE.BoxGeometry(frameThick, config.height, frameDepth),
+                    new THREE.BoxGeometry(frameThick, 2.26, frameDepth),
                     frameMat
                 );
-                leftFrame.position.x = -(config.width / 2 + frameThick / 2);
+                leftFrame.position.x = -1.19;
                 frameGroup.add(leftFrame);
 
                 const rightFrame = new THREE.Mesh(
-                    new THREE.BoxGeometry(frameThick, config.height, frameDepth),
+                    new THREE.BoxGeometry(frameThick, 2.26, frameDepth),
                     frameMat
                 );
-                rightFrame.position.x = config.width / 2 + frameThick / 2;
+                rightFrame.position.x = 1.19;
                 frameGroup.add(rightFrame);
 
-                // NO plaque, NO title label - purely decorative
+                // Plaque (wooden nameplate) - SAME as main paintings
+                const plaqueGeo = new THREE.BoxGeometry(1.0, 0.15, 0.03);
+                const plaqueMat = new THREE.MeshStandardMaterial({
+                    color: 0x3b2a16, // Dark wood color to match main paintings
+                    roughness: 0.6,
+                    metalness: 0.1
+                });
+                const plaque = new THREE.Mesh(plaqueGeo, plaqueMat);
+                plaque.position.set(0, -1.45, 0.08);
+                frameGroup.add(plaque);
 
-                // Add subtle lighting (softer than main paintings)
-                const washLight = new THREE.SpotLight(0xFFF4E0, 0.5, 5, Math.PI / 8, 0.5);
+                // Title label on plaque (intentionally blurred/low-res since not viewed up close)
+                const titleLabel = createPlaqueLabel(config.title);
+                titleLabel.position.set(0, -1.45, 0.10);
+                titleLabel.scale.set(0.7, 0.7, 0.7); // Slightly smaller to appear distant
+                frameGroup.add(titleLabel);
+
+                // Add lighting - SAME as main paintings but slightly softer
+                const washLight = new THREE.SpotLight(0xFFF4E0, 0.7, 6, Math.PI / 8, 0.5);
                 washLight.position.copy(frameGroup.position);
-                washLight.position.y += 1.5;
+                washLight.position.y += 1.8;
                 washLight.position.z += (side === 'left' ? -0.2 : 0.2);
                 washLight.target.position.copy(frameGroup.position);
                 washLight.visible = false;
-                washLight.castShadow = false;
+                washLight.castShadow = true;
                 corridorGroup.push(washLight);
                 corridorGroup.push(washLight.target);
                 scene.add(washLight);
@@ -1690,246 +1704,113 @@
             sculptureGroup.add(platform);
 
             // ============================================
-            // MARBLE MATERIAL (polished white with veins)
+            // POLISHED WHITE MARBLE SPHERE (floating centerpiece)
             // ============================================
+
+            // Ultra-smooth marble material for sphere
             const marbleMat = new THREE.MeshStandardMaterial({
                 color: 0xFFFBF7, // Pure white marble
-                roughness: 0.2,
-                metalness: 0.02,
-                envMapIntensity: 1.2,
+                roughness: 0.15, // More polished for modern aesthetic
+                metalness: 0.08, // Slight reflectivity
+                envMapIntensity: 1.5, // Enhanced reflections
                 side: THREE.DoubleSide
             });
 
-            // Create figure base at y = 0.65 (on top of platform)
-            const figureBase = new THREE.Group();
-            figureBase.position.y = 0.65;
+            // Large floating sphere (centerpiece)
+            const sphereGeo = new THREE.SphereGeometry(0.55, 64, 64); // High segment count for perfectly smooth surface
+            const sphere = new THREE.Mesh(sphereGeo, marbleMat);
+            sphere.position.y = 1.5; // Floating above pedestal
+            sphere.castShadow = true;
+            sphere.receiveShadow = true;
+            sculptureGroup.add(sphere);
+
+            // Levitation glow disc (subtle effect under sphere)
+            const levitationGlowGeo = new THREE.CircleGeometry(0.6, 64);
+            const levitationGlowMat = new THREE.MeshBasicMaterial({
+                color: 0xFFFFFF,
+                transparent: true,
+                opacity: 0.25,
+                side: THREE.DoubleSide
+            });
+            const levitationGlow = new THREE.Mesh(levitationGlowGeo, levitationGlowMat);
+            levitationGlow.rotation.x = -Math.PI / 2;
+            levitationGlow.position.y = 0.7; // Just under the sphere
+            sculptureGroup.add(levitationGlow);
 
             // ============================================
-            // LOWER BODY & LEGS (contrapposto pose)
+            // SYMMETRICAL SIDE SCULPTURES (modern geometric)
             // ============================================
 
-            // Right leg (weight-bearing, straight) - using LatheGeometry for organic shape
-            const rightLegPoints = [];
-            for (let i = 0; i <= 20; i++) {
-                const t = i / 20;
-                const y = t * 0.9;
-                const radius = 0.08 + Math.sin(t * Math.PI) * 0.03; // Varies for calf muscle
-                rightLegPoints.push(new THREE.Vector2(radius, y));
-            }
-            const rightLegGeo = new THREE.LatheGeometry(rightLegPoints, 16);
-            const rightLeg = new THREE.Mesh(rightLegGeo, marbleMat);
-            rightLeg.position.set(0.08, 0, 0);
-            rightLeg.castShadow = true;
-            figureBase.add(rightLeg);
+            // White marble material for pedestals (matching main pedestal)
+            const sidePedestalMat = new THREE.MeshStandardMaterial({
+                color: 0xF8F5F0, // Warm white marble (same as main pedestal)
+                roughness: 0.25,
+                metalness: 0.05,
+                envMapIntensity: 0.8
+            });
 
-            // Left leg (relaxed, slightly bent) - positioned back and to side
-            const leftLegGeo = new THREE.LatheGeometry(rightLegPoints, 16);
-            const leftLeg = new THREE.Mesh(leftLegGeo, marbleMat);
-            leftLeg.position.set(-0.12, 0, -0.05);
-            leftLeg.rotation.z = 0.1; // Slight bend
-            leftLeg.castShadow = true;
-            figureBase.add(leftLeg);
+            // Gold trim material for decorative objects
+            const goldMat = new THREE.MeshStandardMaterial({
+                color: 0xD4AF37, // Gold finish
+                roughness: 0.3,
+                metalness: 0.9,
+                envMapIntensity: 0.9
+            });
 
-            // ============================================
-            // DRAPED CLOTH (hips and lower torso)
-            // ============================================
+            // LEFT SIDE: Short cylindrical pedestal with small sphere
+            const leftSculptureGroup = new THREE.Group();
+            leftSculptureGroup.position.set(-1.5, 0, 0);
 
-            // Main drape wrapped around hips
-            const drapeGeo = new THREE.CylinderGeometry(0.22, 0.18, 0.4, 24, 1);
-            const drape = new THREE.Mesh(drapeGeo, marbleMat);
-            drape.position.y = 1.0;
-            drape.castShadow = true;
+            // Short cylindrical pedestal (identical to right side)
+            const leftPedestalGeo = new THREE.CylinderGeometry(0.2, 0.22, 0.6, 32);
+            const leftPedestal = new THREE.Mesh(leftPedestalGeo, sidePedestalMat);
+            leftPedestal.position.y = 0.65;
+            leftPedestal.castShadow = true;
+            leftPedestal.receiveShadow = true;
+            leftSculptureGroup.add(leftPedestal);
 
-            // Add vertices displacement for cloth folds
-            const drapePositions = drape.geometry.attributes.position;
-            for (let i = 0; i < drapePositions.count; i++) {
-                const x = drapePositions.getX(i);
-                const y = drapePositions.getY(i);
-                const z = drapePositions.getZ(i);
-                const angle = Math.atan2(z, x);
-                const wave = Math.sin(angle * 6) * 0.015; // Vertical folds
-                drapePositions.setX(i, x + wave);
-                drapePositions.setZ(i, z + wave);
-            }
-            drapePositions.needsUpdate = true;
-            drape.geometry.computeVertexNormals();
-            figureBase.add(drape);
+            // Thin gold trim on top
+            const leftTrimGeo = new THREE.CylinderGeometry(0.21, 0.21, 0.02, 32);
+            const leftTrim = new THREE.Mesh(leftTrimGeo, goldMat);
+            leftTrim.position.y = 0.96;
+            leftSculptureGroup.add(leftTrim);
 
-            // Asymmetric cloth fold falling to left side
-            const foldGeo = new THREE.ConeGeometry(0.12, 0.35, 16);
-            const fold = new THREE.Mesh(foldGeo, marbleMat);
-            fold.position.set(-0.2, 0.85, 0.05);
-            fold.rotation.z = 0.4;
-            fold.castShadow = true;
-            figureBase.add(fold);
+            // Small decorative sphere on top
+            const leftSphereGeo = new THREE.SphereGeometry(0.12, 32, 32);
+            const leftSphere = new THREE.Mesh(leftSphereGeo, goldMat);
+            leftSphere.position.y = 1.12;
+            leftSphere.castShadow = true;
+            leftSculptureGroup.add(leftSphere);
 
-            // Cloth gather at waist (belt line)
-            const beltGeo = new THREE.TorusGeometry(0.19, 0.02, 12, 24);
-            const belt = new THREE.Mesh(beltGeo, marbleMat);
-            belt.position.y = 1.2;
-            belt.rotation.x = Math.PI / 2;
-            figureBase.add(belt);
+            sculptureGroup.add(leftSculptureGroup);
 
-            // ============================================
-            // TORSO (twisted, classical female form)
-            // ============================================
+            // RIGHT SIDE: Identical short cylindrical pedestal with small cube
+            const rightSculptureGroup = new THREE.Group();
+            rightSculptureGroup.position.set(1.5, 0, 0);
 
-            // Lower torso (wider at hips)
-            const lowerTorsoGeo = new THREE.CylinderGeometry(0.16, 0.19, 0.25, 24);
-            const lowerTorso = new THREE.Mesh(lowerTorsoGeo, marbleMat);
-            lowerTorso.position.y = 1.33;
-            lowerTorso.rotation.y = 0.15; // Subtle twist
-            lowerTorso.castShadow = true;
-            figureBase.add(lowerTorso);
+            // Short cylindrical pedestal (IDENTICAL to left side)
+            const rightPedestalGeo = new THREE.CylinderGeometry(0.2, 0.22, 0.6, 32);
+            const rightPedestal = new THREE.Mesh(rightPedestalGeo, sidePedestalMat);
+            rightPedestal.position.y = 0.65;
+            rightPedestal.castShadow = true;
+            rightPedestal.receiveShadow = true;
+            rightSculptureGroup.add(rightPedestal);
 
-            // Mid torso (narrower at waist)
-            const midTorsoGeo = new THREE.CylinderGeometry(0.14, 0.16, 0.2, 24);
-            const midTorso = new THREE.Mesh(midTorsoGeo, marbleMat);
-            midTorso.position.y = 1.55;
-            midTorso.rotation.y = 0.1;
-            midTorso.castShadow = true;
-            figureBase.add(midTorso);
+            // Thin gold trim on top (IDENTICAL to left side)
+            const rightTrimGeo = new THREE.CylinderGeometry(0.21, 0.21, 0.02, 32);
+            const rightTrim = new THREE.Mesh(rightTrimGeo, goldMat);
+            rightTrim.position.y = 0.96;
+            rightSculptureGroup.add(rightTrim);
 
-            // Upper torso/chest (broader)
-            const upperTorsoGeo = new THREE.SphereGeometry(0.17, 24, 24, 0, Math.PI * 2, 0, Math.PI / 2);
-            const upperTorso = new THREE.Mesh(upperTorsoGeo, marbleMat);
-            upperTorso.position.y = 1.68;
-            upperTorso.rotation.x = Math.PI;
-            upperTorso.castShadow = true;
-            figureBase.add(upperTorso);
+            // Small decorative cube on top (for variety)
+            const rightCubeGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+            const rightCube = new THREE.Mesh(rightCubeGeo, goldMat);
+            rightCube.position.y = 1.12;
+            rightCube.rotation.y = Math.PI / 4; // Slight rotation for visual interest
+            rightCube.castShadow = true;
+            rightSculptureGroup.add(rightCube);
 
-            // ============================================
-            // SHOULDERS & NECK
-            // ============================================
-
-            // Shoulders
-            const shoulderGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.35, 16);
-            const shoulders = new THREE.Mesh(shoulderGeo, marbleMat);
-            shoulders.position.y = 1.78;
-            shoulders.rotation.z = Math.PI / 2;
-            shoulders.castShadow = true;
-            figureBase.add(shoulders);
-
-            // Neck
-            const neckGeo = new THREE.CylinderGeometry(0.06, 0.07, 0.15, 16);
-            const neck = new THREE.Mesh(neckGeo, marbleMat);
-            neck.position.y = 1.93;
-            neck.castShadow = true;
-            figureBase.add(neck);
-
-            // ============================================
-            // HEAD (tilted, with facial features)
-            // ============================================
-
-            const headGroup = new THREE.Group();
-            headGroup.position.y = 2.08;
-            headGroup.rotation.z = -0.12; // Slight tilt
-            headGroup.rotation.y = 0.2; // Looking slightly to the right
-
-            // Cranium
-            const craniumGeo = new THREE.SphereGeometry(0.13, 32, 32);
-            const cranium = new THREE.Mesh(craniumGeo, marbleMat);
-            cranium.scale.set(1, 1.1, 0.95); // Slightly elongated
-            cranium.castShadow = true;
-            headGroup.add(cranium);
-
-            // Face (front of head)
-            const faceGeo = new THREE.SphereGeometry(0.12, 32, 32, 0, Math.PI / 2);
-            const face = new THREE.Mesh(faceGeo, marbleMat);
-            face.position.z = 0.06;
-            face.rotation.y = -Math.PI / 4;
-            headGroup.add(face);
-
-            // Nose (small protrusion)
-            const noseGeo = new THREE.ConeGeometry(0.015, 0.04, 8);
-            const nose = new THREE.Mesh(noseGeo, marbleMat);
-            nose.position.set(0, 0.01, 0.13);
-            nose.rotation.x = Math.PI / 2;
-            headGroup.add(nose);
-
-            // Hair (wavy Greek-style locks)
-            const hairGeo = new THREE.SphereGeometry(0.135, 24, 24);
-            const hair = new THREE.Mesh(hairGeo, marbleMat);
-            hair.scale.set(1, 1.05, 1);
-            hair.position.y = 0.02;
-
-            // Add wave texture to hair
-            const hairPositions = hair.geometry.attributes.position;
-            for (let i = 0; i < hairPositions.count; i++) {
-                const x = hairPositions.getX(i);
-                const y = hairPositions.getY(i);
-                const z = hairPositions.getZ(i);
-                const wave = Math.sin(y * 15) * Math.cos(x * 10) * 0.008;
-                hairPositions.setX(i, x + wave);
-                hairPositions.setZ(i, z + wave);
-            }
-            hairPositions.needsUpdate = true;
-            hair.geometry.computeVertexNormals();
-            headGroup.add(hair);
-
-            // Hair bun at back
-            const bunGeo = new THREE.SphereGeometry(0.08, 16, 16);
-            const bun = new THREE.Mesh(bunGeo, marbleMat);
-            bun.position.set(0, 0.04, -0.1);
-            headGroup.add(bun);
-
-            figureBase.add(headGroup);
-
-            // ============================================
-            // ARMS
-            // ============================================
-
-            // LEFT ARM (broken at mid-upper arm, like Venus de Milo)
-            const leftUpperArmGeo = new THREE.CylinderGeometry(0.045, 0.05, 0.22, 16);
-            const leftUpperArm = new THREE.Mesh(leftUpperArmGeo, marbleMat);
-            leftUpperArm.position.set(-0.2, 1.65, 0);
-            leftUpperArm.rotation.z = 0.5;
-            leftUpperArm.castShadow = true;
-            figureBase.add(leftUpperArm);
-
-            // Broken edge (irregular sphere to show fracture)
-            const breakGeo = new THREE.SphereGeometry(0.048, 12, 12);
-            const breakEdge = new THREE.Mesh(breakGeo, marbleMat);
-            breakEdge.position.set(-0.27, 1.55, 0);
-            breakEdge.scale.set(1, 0.6, 1);
-            figureBase.add(breakEdge);
-
-            // RIGHT ARM (intact, lowered gracefully)
-            const rightUpperArmGeo = new THREE.CylinderGeometry(0.04, 0.048, 0.25, 16);
-            const rightUpperArm = new THREE.Mesh(rightUpperArmGeo, marbleMat);
-            rightUpperArm.position.set(0.2, 1.63, 0.02);
-            rightUpperArm.rotation.z = -0.3;
-            rightUpperArm.castShadow = true;
-            figureBase.add(rightUpperArm);
-
-            // Right forearm
-            const rightForearmGeo = new THREE.CylinderGeometry(0.035, 0.04, 0.23, 16);
-            const rightForearm = new THREE.Mesh(rightForearmGeo, marbleMat);
-            rightForearm.position.set(0.29, 1.37, 0.05);
-            rightForearm.rotation.z = -0.5;
-            rightForearm.castShadow = true;
-            figureBase.add(rightForearm);
-
-            // Right hand (simplified)
-            const rightHandGeo = new THREE.SphereGeometry(0.04, 12, 12);
-            const rightHand = new THREE.Mesh(rightHandGeo, marbleMat);
-            rightHand.position.set(0.34, 1.18, 0.08);
-            rightHand.scale.set(0.8, 1.2, 0.7);
-            rightHand.castShadow = true;
-            figureBase.add(rightHand);
-
-            // ============================================
-            // SURFACE DETAILS (chips, wear)
-            // ============================================
-
-            // Small chip at base
-            const chipGeo = new THREE.SphereGeometry(0.03, 8, 8);
-            const chip = new THREE.Mesh(chipGeo, marbleMat);
-            chip.position.set(0.15, 0.05, 0.18);
-            chip.scale.set(0.5, 0.3, 0.4);
-            figureBase.add(chip);
-
-            sculptureGroup.add(figureBase);
+            sculptureGroup.add(rightSculptureGroup);
 
             // ============================================
             // CIRCULAR DISPLAY BASE (museum floor platform)
@@ -2144,7 +2025,7 @@
             corridorGroup.push(sculptureGroup);
             scene.add(sculptureGroup);
 
-            console.log('✅ Classical marble sculpture created');
+            console.log('✅ Modern abstract sculpture created (floating sphere + side pedestals)');
         }
 
         // ============================================
