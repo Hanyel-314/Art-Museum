@@ -1898,20 +1898,200 @@
             sculptureGroup.add(figureBase);
 
             // ============================================
+            // CIRCULAR DISPLAY BASE (museum floor platform)
+            // ============================================
+
+            // Large circular platform on floor
+            const displayBaseGeo = new THREE.CylinderGeometry(1.8, 1.9, 0.08, 64);
+            const displayBaseMat = new THREE.MeshStandardMaterial({
+                color: 0xE8E0D5, // Warm stone color
+                roughness: 0.3,
+                metalness: 0.1,
+                envMapIntensity: 0.5
+            });
+            const displayBase = new THREE.Mesh(displayBaseGeo, displayBaseMat);
+            displayBase.position.y = 0.04;
+            displayBase.castShadow = true;
+            displayBase.receiveShadow = true;
+            sculptureGroup.add(displayBase);
+
+            // Decorative edge ring
+            const edgeRingGeo = new THREE.TorusGeometry(1.85, 0.04, 16, 64);
+            const edgeRingMat = new THREE.MeshStandardMaterial({
+                color: 0xD4AF37, // Gold accent
+                roughness: 0.3,
+                metalness: 0.8
+            });
+            const edgeRing = new THREE.Mesh(edgeRingGeo, edgeRingMat);
+            edgeRing.rotation.x = Math.PI / 2;
+            edgeRing.position.y = 0.09;
+            sculptureGroup.add(edgeRing);
+
+            // Radial glow disc (subtle ambient light)
+            const glowDiscGeo = new THREE.CircleGeometry(2.2, 64);
+            const glowDiscMat = new THREE.MeshBasicMaterial({
+                color: 0xFFFBF5,
+                transparent: true,
+                opacity: 0.15,
+                side: THREE.DoubleSide
+            });
+            const glowDisc = new THREE.Mesh(glowDiscGeo, glowDiscMat);
+            glowDisc.rotation.x = -Math.PI / 2;
+            glowDisc.position.y = 0.01;
+            sculptureGroup.add(glowDisc);
+
+            // ============================================
+            // SIDE DECORATIVE PLINTHS (optional accents)
+            // ============================================
+
+            // Left plinth with geometric sculpture
+            const leftPlinthGroup = new THREE.Group();
+            leftPlinthGroup.position.set(-3, 0, -28);
+            leftPlinthGroup.visible = false;
+
+            const plinthMat = new THREE.MeshStandardMaterial({
+                color: 0xE0D8CC,
+                roughness: 0.4,
+                metalness: 0.05
+            });
+
+            // Plinth base
+            const leftPlinthGeo = new THREE.CylinderGeometry(0.35, 0.4, 0.8, 16);
+            const leftPlinth = new THREE.Mesh(leftPlinthGeo, plinthMat);
+            leftPlinth.position.y = 0.4;
+            leftPlinth.castShadow = true;
+            leftPlinthGroup.add(leftPlinth);
+
+            // Simple geometric vase
+            const vaseGeo = new THREE.CylinderGeometry(0.12, 0.15, 0.4, 16);
+            const vaseMat = new THREE.MeshStandardMaterial({
+                color: 0xA89080,
+                roughness: 0.5,
+                metalness: 0.1
+            });
+            const vase = new THREE.Mesh(vaseGeo, vaseMat);
+            vase.position.y = 1.0;
+            vase.castShadow = true;
+            leftPlinthGroup.add(vase);
+
+            corridorGroup.push(leftPlinthGroup);
+            scene.add(leftPlinthGroup);
+
+            // Right plinth with geometric sculpture (mirrored)
+            const rightPlinthGroup = new THREE.Group();
+            rightPlinthGroup.position.set(3, 0, -28);
+            rightPlinthGroup.visible = false;
+
+            const rightPlinth = new THREE.Mesh(leftPlinthGeo, plinthMat);
+            rightPlinth.position.y = 0.4;
+            rightPlinth.castShadow = true;
+            rightPlinthGroup.add(rightPlinth);
+
+            const vase2 = new THREE.Mesh(vaseGeo, vaseMat);
+            vase2.position.y = 1.0;
+            vase2.castShadow = true;
+            rightPlinthGroup.add(vase2);
+
+            corridorGroup.push(rightPlinthGroup);
+            scene.add(rightPlinthGroup);
+
+            // ============================================
+            // ENHANCED BACK WALL with gradient and arch
+            // ============================================
+
+            // Back wall architectural panel with gradient
+            const backPanelGeo = new THREE.PlaneGeometry(8, 5);
+
+            // Create gradient texture for back wall
+            const gradientCanvas = document.createElement('canvas');
+            gradientCanvas.width = 512;
+            gradientCanvas.height = 512;
+            const gradCtx = gradientCanvas.getContext('2d');
+
+            // Vertical gradient: warm white to cream
+            const gradient = gradCtx.createLinearGradient(0, 0, 0, gradientCanvas.height);
+            gradient.addColorStop(0, '#FFFBF5');    // Top: warm white
+            gradient.addColorStop(0.5, '#F8F4EC');  // Middle: light cream
+            gradient.addColorStop(1, '#F0EAD8');    // Bottom: cream
+            gradCtx.fillStyle = gradient;
+            gradCtx.fillRect(0, 0, gradientCanvas.width, gradientCanvas.height);
+
+            // Add subtle radial highlight behind sculpture position
+            const radialGrad = gradCtx.createRadialGradient(
+                gradientCanvas.width / 2, gradientCanvas.height * 0.4, 0,
+                gradientCanvas.width / 2, gradientCanvas.height * 0.4, gradientCanvas.width * 0.6
+            );
+            radialGrad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+            radialGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            gradCtx.fillStyle = radialGrad;
+            gradCtx.fillRect(0, 0, gradientCanvas.width, gradientCanvas.height);
+
+            const gradientTexture = new THREE.CanvasTexture(gradientCanvas);
+            const backPanelMat = new THREE.MeshStandardMaterial({
+                map: gradientTexture,
+                color: 0xFFFBF5,
+                roughness: 0.9,
+                metalness: 0,
+                side: THREE.DoubleSide
+            });
+
+            const backPanel = new THREE.Mesh(backPanelGeo, backPanelMat);
+            backPanel.rotation.y = Math.PI;
+            backPanel.position.set(0, 3, -29.9); // Just in front of back wall
+            backPanel.visible = false;
+            corridorGroup.push(backPanel);
+            scene.add(backPanel);
+
+            // Recessed arch outline (subtle architectural detail)
+            const archCurve = new THREE.Shape();
+            archCurve.moveTo(-2, 0);
+            archCurve.lineTo(-2, 3);
+            archCurve.quadraticCurveTo(-2, 4, -1, 4.5);
+            archCurve.quadraticCurveTo(0, 4.8, 1, 4.5);
+            archCurve.quadraticCurveTo(2, 4, 2, 3);
+            archCurve.lineTo(2, 0);
+
+            const archGeo = new THREE.ShapeGeometry(archCurve);
+            const archMat = new THREE.MeshStandardMaterial({
+                color: 0xE8E0D5,
+                roughness: 0.8,
+                metalness: 0,
+                side: THREE.DoubleSide
+            });
+            const arch = new THREE.Mesh(archGeo, archMat);
+            arch.rotation.y = Math.PI;
+            arch.position.set(0, 0.5, -29.85);
+            arch.visible = false;
+            corridorGroup.push(arch);
+            scene.add(arch);
+
+            // ============================================
             // LIGHTING (soft key light from above + rim light)
             // ============================================
 
-            // Key spotlight from above
-            const keyLight = new THREE.SpotLight(0xFFFBF7, 1.5, 12, Math.PI / 5, 0.3);
-            keyLight.position.set(0, 5, -28);
+            // Enhanced key spotlight from above (brighter, softer)
+            const keyLight = new THREE.SpotLight(0xFFFBF7, 2.0, 15, Math.PI / 5, 0.2);
+            keyLight.position.set(0, 5.5, -28);
             keyLight.target.position.set(0, 1.5, -28);
             keyLight.visible = false;
             keyLight.castShadow = true;
             keyLight.shadow.bias = -0.001;
+            keyLight.shadow.mapSize.width = 1024;
+            keyLight.shadow.mapSize.height = 1024;
             corridorGroup.push(keyLight);
             corridorGroup.push(keyLight.target);
             scene.add(keyLight);
             scene.add(keyLight.target);
+
+            // Warm accent light from above-front
+            const accentLight = new THREE.SpotLight(0xFFEDD5, 0.8, 10, Math.PI / 6, 0.3);
+            accentLight.position.set(0, 4.5, -26);
+            accentLight.target.position.set(0, 1.5, -28);
+            accentLight.visible = false;
+            corridorGroup.push(accentLight);
+            corridorGroup.push(accentLight.target);
+            scene.add(accentLight);
+            scene.add(accentLight.target);
 
             // Rim light behind (subtle glow for silhouette)
             const rimLight = new THREE.PointLight(0xE8E4F0, 0.6, 8);
