@@ -1079,7 +1079,8 @@
                 washLight.position.z += (side === 'left' ? -0.2 : 0.2);
                 washLight.target.position.copy(paintingGroup.position);
                 washLight.visible = false;
-                washLight.castShadow = true;
+                // Disable shadow for leftmost painting on left wall (index 0)
+                washLight.castShadow = !(side === 'left' && i === 0);
                 corridorGroup.push(washLight);
                 corridorGroup.push(washLight.target);
                 scene.add(washLight);
@@ -1280,17 +1281,43 @@
             isAnimating = true;
             console.log(`🖼️ Viewing: ${artworkData.title}`);
 
-            corridorGroup.forEach(obj => obj.visible = false);
+            // Create white light transition effect (like entering museum)
+            createPaintingWhiteLightTransition(artworkData);
+        }
 
-            scene.background = new THREE.Color(0x1C1C1C);
-            scene.fog = new THREE.Fog(0x1C1C1C, 8, 15);
+        function createPaintingWhiteLightTransition(artworkData) {
+            // Create white overlay for transition effect
+            const whiteFade = document.createElement('div');
+            whiteFade.style.position = 'fixed';
+            whiteFade.style.top = '0';
+            whiteFade.style.left = '0';
+            whiteFade.style.width = '100%';
+            whiteFade.style.height = '100%';
+            whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
+            whiteFade.style.opacity = '0';
+            whiteFade.style.transition = 'opacity 0.8s ease-in';
+            whiteFade.style.zIndex = '999';
+            whiteFade.style.pointerEvents = 'none';
+            document.body.appendChild(whiteFade);
 
-            // Create detailed 3D artwork
-            detailArtwork = new THREE.Group();
-            detailArtwork.position.set(0, 1.7, 0);
+            // Fade to white
+            setTimeout(() => {
+                whiteFade.style.opacity = '1';
+            }, 50);
 
-            const size = 3.5;
-            const canvasDepth = 0.12;
+            // Transition scene during white out
+            setTimeout(() => {
+                corridorGroup.forEach(obj => obj.visible = false);
+
+                scene.background = new THREE.Color(0x000000); // Completely black space
+                scene.fog = new THREE.Fog(0x000000, 8, 15);
+
+                // Create detailed 3D artwork - positioned on the LEFT side
+                detailArtwork = new THREE.Group();
+                detailArtwork.position.set(-2.5, 1.7, 0); // Move to left side
+
+                const size = 3.5;
+                const canvasDepth = 0.12;
 
             // Front canvas
             const frontGeo = new THREE.PlaneGeometry(size, size);
@@ -1427,39 +1454,50 @@
             glass.position.z = canvasDepth / 2 + 0.08;
             detailArtwork.add(glass);
 
-            scene.add(detailArtwork);
-            selectedPainting = artworkData;
+                scene.add(detailArtwork);
+                selectedPainting = artworkData;
 
-            // 3-point lighting
-            detailKeyLight = new THREE.SpotLight(0xFFFFFF, 1.2, 15, Math.PI / 6, 0.4);
-            detailKeyLight.position.set(-4, 4, 6);
-            detailKeyLight.target.position.set(0, 1.7, 0);
-            scene.add(detailKeyLight);
-            scene.add(detailKeyLight.target);
+                // Professional 3-point lighting focused on left-side painting
+                // Key light (main light from upper left)
+                detailKeyLight = new THREE.SpotLight(0xFFFFFF, 1.2, 15, Math.PI / 6, 0.4);
+                detailKeyLight.position.set(-6, 4, 6);
+                detailKeyLight.target.position.set(-2.5, 1.7, 0); // Point to painting on left
+                scene.add(detailKeyLight);
+                scene.add(detailKeyLight.target);
 
-            detailRimLight = new THREE.PointLight(0xFFF4E0, 0.6, 12);
-            detailRimLight.position.set(3, 2.5, -3);
-            scene.add(detailRimLight);
+                // Rim light (back-right highlight)
+                detailRimLight = new THREE.PointLight(0xFFF4E0, 0.6, 12);
+                detailRimLight.position.set(1, 2.5, -3);
+                scene.add(detailRimLight);
 
-            detailFillLight = new THREE.DirectionalLight(0xFFFFFF, 0.3);
-            detailFillLight.position.set(2, 1, 5);
-            scene.add(detailFillLight);
+                // Fill light (soft front fill)
+                detailFillLight = new THREE.DirectionalLight(0xFFFFFF, 0.3);
+                detailFillLight.position.set(0, 1, 5);
+                scene.add(detailFillLight);
 
-            animateCamera(
-                camera.position.clone(),
-                new THREE.Vector3(0, 1.7, 6),
-                camera.rotation.clone(),
-                new THREE.Euler(0, 0, 0),
-                1000,
-                () => {
-                    currentView = 'DETAIL';
-                    isAnimating = false;
-                    backText.textContent = 'Back to Gallery';
-                    showArtworkInfo(artworkData);
-                    renderer.domElement.style.cursor = 'grab';
-                    console.log('✅ Detail view ready - 360° rotation enabled');
-                }
-            );
+                // Set camera to viewing position
+                camera.position.set(0, 1.7, 6);
+                camera.rotation.set(0, 0, 0);
+                camera.lookAt(-2.5, 1.7, 0); // Look at painting on left
+            }, 800);
+
+            // Fade from white
+            setTimeout(() => {
+                whiteFade.style.transition = 'opacity 1s ease-out';
+                whiteFade.style.opacity = '0';
+            }, 1000);
+
+            // Complete transition
+            setTimeout(() => {
+                document.body.removeChild(whiteFade);
+                currentView = 'DETAIL';
+                isAnimating = false;
+                backText.textContent = 'Back to Gallery';
+                backBtn.classList.remove('hidden');
+                showArtworkInfo(artworkData);
+                renderer.domElement.style.cursor = 'grab';
+                console.log('✅ Detail view ready - 360° rotation enabled');
+            }, 2000);
         }
 
         function goBack() {
@@ -1514,13 +1552,12 @@
                     () => {
                         currentView = 'CORRIDOR';
                         isAnimating = false;
-                        backBtn.classList.add('hidden'); // Hide exit button
+                        backBtn.classList.add('hidden'); // Hide back button in corridor
                         wallHintLeft.classList.remove('hidden');
                         wallHintRight.classList.remove('hidden');
                         camera.lookAt(0, 2, -15); // Look down corridor
                     }
                 );
-
             }
             // Removed: No exit from corridor - user stays in museum
         }
