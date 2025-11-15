@@ -29,7 +29,7 @@ let isDragging = false;
 let previousMouse = { x: 0, y: 0 };
 
 // Lighting
-let detailKeyLight, detailRimLight, detailFillLight;
+let detailKeyLight;
 
 // UI Elements
 const tooltip = document.getElementById('entrance-tooltip');
@@ -1171,39 +1171,17 @@ function createPaintingWhiteLightTransition(artworkData) {
     rightFrame.position.x = size / 2 + frameThick / 2;
     detailArtwork.add(rightFrame);
 
-    // Protective glass with subtle reflection
-    const glassGeo = new THREE.PlaneGeometry(size + 0.3, size + 0.3);
-    const glassMat = new THREE.MeshStandardMaterial({
-        color: 0xFFFFFF,
-        transparent: true,
-        opacity: 0.04,
-        roughness: 0.02,
-        metalness: 0.3
-    });
-    const glass = new THREE.Mesh(glassGeo, glassMat);
-    glass.position.z = 0.08; // Just in front of the painting
-    detailArtwork.add(glass);
+    // Removed: Glass - keeping it minimal
 
     scene.add(detailArtwork);
     selectedPainting = artworkData;
 
-        // Professional 3-point lighting focused on left-side painting
-        // Key light (main light from upper left)
-        detailKeyLight = new THREE.SpotLight(0xFFFFFF, 1.2, 15, Math.PI / 6, 0.4);
-        detailKeyLight.position.set(-6, 4, 6);
-        detailKeyLight.target.position.set(-2.5, 1.7, 0); // Point to painting on left
+        // Simple minimal lighting - single soft light from front
+        detailKeyLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+        detailKeyLight.position.set(0, 2, 5);
         scene.add(detailKeyLight);
-        scene.add(detailKeyLight.target);
 
-        // Rim light (back-right highlight)
-        detailRimLight = new THREE.PointLight(0xFFF4E0, 0.6, 12);
-        detailRimLight.position.set(1, 2.5, -3);
-        scene.add(detailRimLight);
-
-        // Fill light (soft front fill)
-        detailFillLight = new THREE.DirectionalLight(0xFFFFFF, 0.3);
-        detailFillLight.position.set(0, 1, 5);
-        scene.add(detailFillLight);
+        // Removed: Complex 3-point lighting - keeping it simple and minimal
 
         // Set camera to viewing position
         camera.position.set(0, 1.7, 6);
@@ -1266,10 +1244,7 @@ function goBack() {
 
             // Remove lighting
             if (detailKeyLight) scene.remove(detailKeyLight);
-            if (detailRimLight) scene.remove(detailRimLight);
-            if (detailFillLight) scene.remove(detailFillLight);
-            if (detailKeyLight && detailKeyLight.target) scene.remove(detailKeyLight.target);
-            detailKeyLight = detailRimLight = detailFillLight = null;
+            detailKeyLight = null;
 
             // Restore corridor
             scene.background = new THREE.Color(0xFAF8F3);
