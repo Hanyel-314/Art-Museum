@@ -204,6 +204,7 @@ function createEntranceScene() {
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.1; // Slightly below corridor floor to prevent z-fighting
     ground.receiveShadow = true;
     scene.add(ground);
 
@@ -400,6 +401,7 @@ function createCorridorScene() {
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0; // Main floor at ground level (entrance ground is at -0.1)
     floor.receiveShadow = true;
     floor.visible = false;
     corridorGroup.push(floor);
