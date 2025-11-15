@@ -38,6 +38,15 @@ const infoPanel = document.getElementById('artwork-info');
 const wallHintLeft = document.getElementById('wall-hint-left');
 const wallHintRight = document.getElementById('wall-hint-right');
 
+// Detail overlay elements
+let detailOverlay, detailPainting, paintingCanvas, detailCloseBtn;
+let rotationY = 0;
+let rotationX = 0;
+let paintingScale = 1;
+let isDetailDragging = false;
+let detailLastX = 0;
+let detailLastY = 0;
+
 // ============================================
 // ARTWORK DATA
 // ============================================
@@ -45,54 +54,54 @@ const wallHintRight = document.getElementById('wall-hint-right');
 const ARTWORKS = {
     left: [
         {
-            title: "Starry Night",
+            title: "The Starry Night",
             artist: "Vincent van Gogh",
             year: "1889",
             medium: "Oil on canvas",
-            description: "A swirling, dreamlike vision of the night sky over a French village, expressing deep emotion through bold brushstrokes and vivid colors.",
+            description: "Van Gogh's masterpiece portrays a dreamlike nocturnal landscape dominated by swirling, luminous stars and a crescent moon set against a deep blue sky. The composition features a prominent dark cypress tree in the foreground, symbolizing death and eternity, while a peaceful village nestles below with its church steeple reaching upward. The painting's revolutionary use of thick, expressive brushstrokes and vivid blues, yellows, and whites creates a sense of cosmic movement and emotional intensity. Painted from memory during his stay at the Saint-Paul-de-Mausole asylum in Saint-Rémy-de-Provence, this work transcends mere representation to capture the artist's turbulent inner state and his profound connection to nature and the cosmos, making it one of the most recognizable and influential paintings in Western art history.",
             color: 0x2B4C7E
         },
         {
-            title: "The Great Wave off Kanagawa",
-            artist: "Katsushika Hokusai",
-            year: "1831",
-            medium: "Woodblock print",
-            description: "An iconic Japanese ukiyo-e print depicting a towering wave threatening boats near Mount Fuji, symbolizing nature's power.",
-            color: 0x1E5A8E
+            title: "The Scream",
+            artist: "Edvard Munch",
+            year: "1893",
+            medium: "Oil, tempera, pastel and crayon on cardboard",
+            description: "Munch's iconic Expressionist masterwork depicts a solitary figure on a bridge, hands raised to its face in a gesture of existential terror, its mouth open in a silent scream that seems to reverberate through the undulating landscape. The blood-red and orange sky swirls dramatically above a dark blue fjord, while two distant figures walk away, indifferent to the protagonist's anguish. The painting's distorted forms, aggressive brushwork, and intense color palette embody the artist's exploration of anxiety, isolation, and the human condition in modern society. Created during a period of personal crisis, the work reflects Munch's own struggles with mental illness and his desire to express psychological states rather than external reality, establishing it as a powerful symbol of modern existential angst and a cornerstone of Expressionist art.",
+            color: 0xD94A3D
         },
         {
             title: "Girl with a Pearl Earring",
             artist: "Johannes Vermeer",
-            year: "1665",
+            year: "c. 1665",
             medium: "Oil on canvas",
-            description: "Often called the 'Mona Lisa of the North,' this intimate portrait captures a girl's enigmatic gaze and luminous pearl earring.",
+            description: "Vermeer's intimate portrait, often called the 'Mona Lisa of the North,' captures a young girl turning to glance over her shoulder, her lips slightly parted as if about to speak. The subject's luminous pearl earring catches the light, serving as the painting's focal point and lending the work its name. Set against a dark, undefined background, the girl wears an exotic turban of blue and yellow fabric, creating a timeless, mysterious quality. Vermeer's masterful manipulation of light and shadow, known as chiaroscuro, illuminates her face with a soft, diffused glow that enhances her enigmatic expression. The painting's restrained palette, exquisite rendering of textures, and psychological depth exemplify the Dutch Golden Age's fascination with capturing fleeting moments and the inner life of ordinary subjects, while the girl's direct gaze creates an intimate connection with viewers across centuries.",
             color: 0x8B7355
         }
     ],
     right: [
         {
-            title: "The Scream",
-            artist: "Edvard Munch",
-            year: "1893",
-            medium: "Oil, tempera, pastel",
-            description: "An expressionist icon depicting overwhelming anxiety, with a distorted figure against a blood-red sky, representing universal human anguish.",
-            color: 0xD94A3D
+            title: "Mona Lisa",
+            artist: "Leonardo da Vinci",
+            year: "1503–1519",
+            medium: "Oil on poplar panel",
+            description: "Leonardo's most celebrated masterpiece portrays Lisa Gherardini, wife of a Florentine merchant, seated in a three-quarter view against a vast, dreamlike landscape of winding paths, distant mountains, and bridges. Her enigmatic smile, achieved through Leonardo's revolutionary sfumato technique of subtly blending colors and tones, has captivated viewers for centuries, seeming to change depending on the angle of viewing. The painting's sophisticated composition balances the figure against the atmospheric background, while her hands rest gracefully in the foreground, demonstrating Leonardo's profound understanding of human anatomy. The innovative pyramidal composition, the sitter's direct gaze, and the harmonious integration of figure and landscape represent the culmination of Renaissance portraiture. The work's fame stems not only from its technical mastery but also from its psychological depth, capturing an elusive personality that continues to inspire countless interpretations and has made it the world's most recognized painting.",
+            color: 0xA67C52
         },
         {
-            title: "The Birth of Venus",
-            artist: "Sandro Botticelli",
-            year: "1485",
-            medium: "Tempera on canvas",
-            description: "A Renaissance masterpiece showing Venus emerging from the sea as a fully grown woman, embodying classical beauty and mythological grace.",
-            color: 0xE8C4A8
+            title: "The Last Supper",
+            artist: "Leonardo da Vinci",
+            year: "1495–1498",
+            medium: "Tempera and oil on gesso, pitch and mastic",
+            description: "Leonardo's monumental mural depicts the dramatic moment when Christ announces that one of his disciples will betray him, capturing the immediate reactions of the twelve apostles in groups of three on either side of the central figure of Jesus. The composition's mathematical precision and use of linear perspective create an illusion of depth, with orthogonal lines converging on Christ's head, establishing him as the focal point and symbolic center. Each apostle displays distinct emotional responses—shock, denial, anger, and confusion—through carefully choreographed gestures and facial expressions that reveal Leonardo's profound understanding of human psychology. The painting revolutionized religious art by bringing unprecedented psychological realism and human drama to a traditional biblical scene. Despite significant deterioration due to Leonardo's experimental technique and environmental damage, this masterwork remains one of the most studied and reproduced paintings in history, exemplifying High Renaissance ideals of harmony, proportion, and narrative clarity.",
+            color: 0x8B6F47
         },
         {
-            title: "The Kiss",
-            artist: "Gustav Klimt",
-            year: "1908",
-            medium: "Oil and gold leaf",
-            description: "A shimmering Art Nouveau work depicting lovers embraced in ornate golden robes, symbolizing passion, intimacy, and eternal love.",
-            color: 0xD4AF37
+            title: "Sunflowers",
+            artist: "Vincent van Gogh",
+            year: "1888",
+            medium: "Oil on canvas",
+            description: "Van Gogh's vibrant still life features a bouquet of sunflowers in various stages of bloom, from fresh yellow blossoms to withering brown seed heads, arranged in a simple earthenware vase. The painting explodes with intense yellows, oranges, and golds applied with thick, impasto brushstrokes that create a textured, almost sculptural surface. Van Gogh painted this series to decorate his house in Arles in anticipation of Paul Gauguin's visit, intending them to demonstrate his artistic capabilities and create a welcoming environment. The work transcends mere botanical representation, imbuing the humble sunflowers with symbolic weight—they represent gratitude, devotion, and the cycles of life and death. The complementary color scheme of yellows against blue-green backgrounds, the dynamic composition, and the emotional intensity of the brushwork exemplify Van Gogh's Post-Impressionist style and his ability to invest everyday subjects with profound spiritual and emotional resonance, making these sunflowers among the most beloved and valuable paintings in art history.",
+            color: 0xE8B44F
         }
     ]
 };
@@ -172,6 +181,19 @@ function init() {
     canvas.addEventListener('mouseleave', onMouseLeave);
     canvas.addEventListener('wheel', onWheel, { passive: false });
     backBtn.addEventListener('click', goBack);
+
+    // Get detail overlay elements
+    detailOverlay = document.getElementById('detail-overlay');
+    detailPainting = document.getElementById('detail-painting');
+    paintingCanvas = document.getElementById('painting-canvas');
+    detailCloseBtn = document.getElementById('detail-close');
+
+    // Detail overlay event listeners
+    detailCloseBtn.addEventListener('click', closeDetailView);
+    detailPainting.addEventListener('mousedown', onDetailMouseDown);
+    detailPainting.addEventListener('wheel', onDetailWheel, { passive: false });
+    window.addEventListener('mousemove', onDetailMouseMove);
+    window.addEventListener('mouseup', onDetailMouseUp);
 
     console.log('✅ Event listeners attached');
 
@@ -1057,192 +1079,128 @@ function viewArtworkDetail(artworkData) {
     isAnimating = true;
     console.log(`🖼️ Viewing: ${artworkData.title}`);
 
-    // Hide corridor
+    // PURE BLACK BACKGROUND - completely hide gallery
     corridorGroup.forEach(obj => obj.visible = false);
 
-    // Darken background
-    scene.background = new THREE.Color(0x1C1C1C);
-    scene.fog = new THREE.Fog(0x1C1C1C, 8, 15);
+    // Set pure black background
+    renderer.setClearColor(0x000000, 1);
+    scene.background = new THREE.Color(0x000000);
+    scene.fog = null; // Remove fog for pure black
 
-    // Create detailed 3D artwork
-    detailArtwork = new THREE.Group();
-    detailArtwork.position.set(0, 1.7, 0);
-
-    const size = 3.5;
-    const canvasDepth = 0.12;
-
-    // Front canvas (painted surface)
-    const frontGeo = new THREE.PlaneGeometry(size, size);
-    const frontMat = new THREE.MeshStandardMaterial({
-        color: artworkData.color,
-        roughness: 0.75,
-        metalness: 0
-    });
-    const front = new THREE.Mesh(frontGeo, frontMat);
-    front.position.z = canvasDepth / 2;
-    detailArtwork.add(front);
-
-    // Canvas edges (visible when rotated)
-    const edgeColor = 0xE8E0D0;
-    const edgeMat = new THREE.MeshStandardMaterial({
-        color: edgeColor,
-        roughness: 0.9
-    });
-
-    const topEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(size, 0.02, canvasDepth),
-        edgeMat
-    );
-    topEdge.position.y = size / 2;
-    detailArtwork.add(topEdge);
-
-    const bottomEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(size, 0.02, canvasDepth),
-        edgeMat
-    );
-    bottomEdge.position.y = -size / 2;
-    detailArtwork.add(bottomEdge);
-
-    const leftEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(0.02, size, canvasDepth),
-        edgeMat
-    );
-    leftEdge.position.x = -size / 2;
-    detailArtwork.add(leftEdge);
-
-    const rightEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(0.02, size, canvasDepth),
-        edgeMat
-    );
-    rightEdge.position.x = size / 2;
-    detailArtwork.add(rightEdge);
-
-    // Back of canvas (linen texture)
-    const backGeo = new THREE.PlaneGeometry(size - 0.15, size - 0.15);
-    const backMat = new THREE.MeshStandardMaterial({
-        color: 0xC8B896,
-        roughness: 0.95
-    });
-    const back = new THREE.Mesh(backGeo, backMat);
-    back.position.z = -canvasDepth / 2;
-    back.rotation.y = Math.PI;
-    detailArtwork.add(back);
-
-    // Wooden support bars (visible on back)
-    const barMat = new THREE.MeshStandardMaterial({
-        color: 0x5D4E37,
-        roughness: 0.85
-    });
-
-    const bar1 = new THREE.Mesh(
-        new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
-        barMat
-    );
-    bar1.position.set(0, size / 3, -canvasDepth / 2 - 0.03);
-    detailArtwork.add(bar1);
-
-    const bar2 = new THREE.Mesh(
-        new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
-        barMat
-    );
-    bar2.position.set(0, -size / 3, -canvasDepth / 2 - 0.03);
-    detailArtwork.add(bar2);
-
-    const bar3 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.12, size - 0.5, 0.05),
-        barMat
-    );
-    bar3.position.set(0, 0, -canvasDepth / 2 - 0.03);
-    detailArtwork.add(bar3);
-
-    // Ornate frame
-    const frameMat = new THREE.MeshStandardMaterial({
-        color: 0x3E2723,
-        roughness: 0.5,
-        metalness: 0.15
-    });
-
-    const frameThick = 0.2;
-    const frameDepth = canvasDepth + 0.15;
-
-    const topFrame = new THREE.Mesh(
-        new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
-        frameMat
-    );
-    topFrame.position.y = size / 2 + frameThick / 2;
-    detailArtwork.add(topFrame);
-
-    const bottomFrame = new THREE.Mesh(
-        new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
-        frameMat
-    );
-    bottomFrame.position.y = -(size / 2 + frameThick / 2);
-    detailArtwork.add(bottomFrame);
-
-    const leftFrame = new THREE.Mesh(
-        new THREE.BoxGeometry(frameThick, size, frameDepth),
-        frameMat
-    );
-    leftFrame.position.x = -(size / 2 + frameThick / 2);
-    detailArtwork.add(leftFrame);
-
-    const rightFrame = new THREE.Mesh(
-        new THREE.BoxGeometry(frameThick, size, frameDepth),
-        frameMat
-    );
-    rightFrame.position.x = size / 2 + frameThick / 2;
-    detailArtwork.add(rightFrame);
-
-    // Protective glass with subtle reflection
-    const glassGeo = new THREE.PlaneGeometry(size + 0.3, size + 0.3);
-    const glassMat = new THREE.MeshStandardMaterial({
-        color: 0xFFFFFF,
-        transparent: true,
-        opacity: 0.04,
-        roughness: 0.02,
-        metalness: 0.3
-    });
-    const glass = new THREE.Mesh(glassGeo, glassMat);
-    glass.position.z = canvasDepth / 2 + 0.08;
-    detailArtwork.add(glass);
-
-    scene.add(detailArtwork);
+    // Store selected painting data
     selectedPainting = artworkData;
 
-    // Professional 3-point lighting
-    // Key light (main light from upper left)
-    detailKeyLight = new THREE.SpotLight(0xFFFFFF, 1.2, 15, Math.PI / 6, 0.4);
-    detailKeyLight.position.set(-4, 4, 6);
-    detailKeyLight.target.position.set(0, 1.7, 0);
-    scene.add(detailKeyLight);
-    scene.add(detailKeyLight.target);
+    // Show 2D overlay with painting
+    showDetailOverlay(artworkData);
 
-    // Rim light (back-right highlight)
-    detailRimLight = new THREE.PointLight(0xFFF4E0, 0.6, 12);
-    detailRimLight.position.set(3, 2.5, -3);
-    scene.add(detailRimLight);
+    // Update view state
+    currentView = 'DETAIL';
+    isAnimating = false;
+    backBtn.classList.add('hidden'); // Hide back button when detail overlay is shown
+    console.log('✅ Detail view ready - 360° rotation enabled');
+}
 
-    // Fill light (soft front fill)
-    detailFillLight = new THREE.DirectionalLight(0xFFFFFF, 0.3);
-    detailFillLight.position.set(2, 1, 5);
-    scene.add(detailFillLight);
+function showDetailOverlay(artworkData) {
+    // Reset rotation and scale
+    rotationY = 0;
+    rotationX = 0;
+    paintingScale = 1;
 
-    // Animate camera to viewing position
-    animateCamera(
-        camera.position.clone(),
-        new THREE.Vector3(0, 1.7, 6),
-        camera.rotation.clone(),
-        new THREE.Euler(0, 0, 0),
-        1000,
-        () => {
-            currentView = 'DETAIL';
-            isAnimating = false;
-            backBtn.textContent = '← Back to Gallery';
-            showArtworkInfo(artworkData);
-            renderer.domElement.style.cursor = 'grab';
-            console.log('✅ Detail view ready - 360° rotation enabled');
-        }
-    );
+    // Set painting color
+    paintingCanvas.style.background = `#${artworkData.color.toString(16).padStart(6, '0')}`;
+
+    // Populate info panel
+    document.getElementById('detail-title').textContent = artworkData.title;
+    document.getElementById('detail-artist').textContent = artworkData.artist;
+    document.getElementById('detail-year').textContent = artworkData.year;
+    document.getElementById('detail-medium').textContent = artworkData.medium;
+    document.getElementById('detail-description').textContent = artworkData.description;
+
+    // Show overlay
+    detailOverlay.classList.remove('hidden');
+
+    // Apply initial transform
+    updatePaintingTransform();
+}
+
+function updatePaintingTransform() {
+    detailPainting.style.transform = `
+        rotateY(${rotationY}deg)
+        rotateX(${rotationX}deg)
+        scale(${paintingScale})
+    `;
+}
+
+function closeDetailView() {
+    // Hide overlay
+    detailOverlay.classList.add('hidden');
+
+    // Restore corridor
+    corridorGroup.forEach(obj => obj.visible = true);
+    scene.background = new THREE.Color(0xFAF8F3);
+    scene.fog = new THREE.Fog(0xFAF8F3, 15, 25);
+    renderer.setClearColor(0xFAF8F3, 1);
+
+    // Return to wall view
+    const side = selectedPainting && ARTWORKS.left.includes(selectedPainting) ? 'left' : 'right';
+    const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+
+    camera.position.set(0, 2.2, -6);
+    camera.rotation.set(0, targetAngle, 0);
+
+    currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
+    backBtn.classList.remove('hidden');
+    backBtn.textContent = '← Back to Corridor';
+
+    selectedPainting = null;
+}
+
+// ============================================
+// DETAIL VIEW EVENT HANDLERS
+// ============================================
+
+function onDetailMouseDown(event) {
+    isDetailDragging = true;
+    detailLastX = event.clientX;
+    detailLastY = event.clientY;
+    detailPainting.style.cursor = 'grabbing';
+}
+
+function onDetailMouseMove(event) {
+    if (!isDetailDragging) return;
+
+    const deltaX = event.clientX - detailLastX;
+    const deltaY = event.clientY - detailLastY;
+
+    detailLastX = event.clientX;
+    detailLastY = event.clientY;
+
+    // Update rotation (full 360° freedom)
+    rotationY += deltaX * 0.3;
+    rotationX -= deltaY * 0.2;
+
+    // Optional: Limit X rotation to prevent extreme angles
+    rotationX = Math.max(-60, Math.min(60, rotationX));
+
+    updatePaintingTransform();
+}
+
+function onDetailMouseUp() {
+    isDetailDragging = false;
+    if (detailPainting) {
+        detailPainting.style.cursor = 'grab';
+    }
+}
+
+function onDetailWheel(event) {
+    event.preventDefault();
+
+    // Zoom painting scale: 0.5x to 2x
+    const delta = event.deltaY * -0.001;
+    paintingScale += delta;
+    paintingScale = Math.max(0.5, Math.min(2, paintingScale));
+
+    updatePaintingTransform();
 }
 
 function goBack() {
@@ -1250,44 +1208,8 @@ function goBack() {
     console.log('⬅️ Going back...');
 
     if (currentView === 'DETAIL') {
-        // Clean up detail view
-        if (detailArtwork) {
-            scene.remove(detailArtwork);
-            detailArtwork = null;
-        }
-
-        // Remove lighting
-        if (detailKeyLight) scene.remove(detailKeyLight);
-        if (detailRimLight) scene.remove(detailRimLight);
-        if (detailFillLight) scene.remove(detailFillLight);
-        if (detailKeyLight && detailKeyLight.target) scene.remove(detailKeyLight.target);
-        detailKeyLight = detailRimLight = detailFillLight = null;
-
-        // Restore corridor
-        scene.background = new THREE.Color(0xFAF8F3);
-        scene.fog = new THREE.Fog(0xFAF8F3, 15, 25); // Match corridor fog settings
-        hideArtworkInfo();
-        corridorGroup.forEach(obj => obj.visible = true);
-        renderer.domElement.style.cursor = 'default';
-
-        // Determine which wall we were viewing based on camera rotation
-        const side = Math.abs(camera.rotation.y - Math.PI / 2) < 0.1 ? 'left' : 'right';
-        const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-        const targetPos = new THREE.Vector3(0, 2.2, -6);
-
-        isAnimating = true;
-        animateCamera(
-            camera.position.clone(),
-            targetPos,
-            camera.rotation.clone(),
-            new THREE.Euler(0, targetAngle, 0),
-            1000,
-            () => {
-                currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
-                isAnimating = false;
-                backBtn.textContent = '← Back to Corridor';
-            }
-        );
+        // Use the closeDetailView function
+        closeDetailView();
 
     } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
         // Return to corridor center - position to see both walls
@@ -1409,22 +1331,8 @@ function onMouseMove(event) {
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    // 360° rotation in detail view
-    if (currentView === 'DETAIL' && isDragging && detailArtwork) {
-        const deltaX = event.clientX - previousMouse.x;
-        const deltaY = event.clientY - previousMouse.y;
-
-        detailArtwork.rotation.y += deltaX * 0.008;
-        detailArtwork.rotation.x += deltaY * 0.005;
-
-        // Limit tilt
-        detailArtwork.rotation.x = Math.max(-Math.PI / 6, Math.min(Math.PI / 6, detailArtwork.rotation.x));
-
-        previousMouse = { x: event.clientX, y: event.clientY };
-    }
-
-    // Hover detection
-    if (!isDragging && !isAnimating) {
+    // Hover detection (only when not in detail view)
+    if (!isDragging && !isAnimating && currentView !== 'DETAIL') {
         raycaster.setFromCamera(mouse, camera);
         let cursor = 'default';
         let foundHover = null;
@@ -1496,58 +1404,25 @@ function onClick(event) {
 }
 
 function onMouseDown(event) {
-    if (currentView === 'DETAIL') {
-        isDragging = true;
-        previousMouse = { x: event.clientX, y: event.clientY };
-        renderer.domElement.style.cursor = 'grabbing';
-    }
+    // Mouse down handled by detail overlay in detail view
 }
 
 function onMouseUp(event) {
-    if (currentView === 'DETAIL') {
-        isDragging = false;
-        renderer.domElement.style.cursor = 'grab';
-    }
+    // Mouse up handled by detail overlay in detail view
 }
 
 function onMouseLeave(event) {
-    if (currentView === 'DETAIL') {
-        isDragging = false;
-        renderer.domElement.style.cursor = 'grab';
-    }
+    // Mouse leave handled by detail overlay in detail view
 }
 
 function onWheel(event) {
-    if (currentView === 'DETAIL') {
-        event.preventDefault();
-
-        // Zoom: 2m to 9m range (up to 300% zoom)
-        const delta = event.deltaY * 0.005;
-        camera.position.z = Math.max(2, Math.min(9, camera.position.z + delta));
-    }
+    // Wheel events in detail view are handled by onDetailWheel
 }
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-// ============================================
-// UI FUNCTIONS
-// ============================================
-
-function showArtworkInfo(data) {
-    document.getElementById('artwork-title').textContent = data.title;
-    document.getElementById('artwork-artist').textContent = data.artist;
-    document.getElementById('artwork-year').textContent = data.year;
-    document.getElementById('artwork-medium').textContent = data.medium;
-    document.getElementById('artwork-description').textContent = data.description;
-    infoPanel.classList.remove('hidden');
-}
-
-function hideArtworkInfo() {
-    infoPanel.classList.add('hidden');
 }
 
 // ============================================
