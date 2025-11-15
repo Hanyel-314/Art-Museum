@@ -388,12 +388,10 @@ function createCorridorScene() {
     const corridorLength = 20; // Shorter, enclosed space
     const corridorWidth = 12; // Wider corridor
 
-    // Uniform matte floor - no texture, pattern, or reflection
+    // Pure solid color floor - completely flat, no lighting effects
     const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
-    const floorMat = new THREE.MeshStandardMaterial({
-        color: 0xE8E0D0, // Uniform light beige (same as entrance)
-        roughness: 1.0, // Completely matte - eliminates all reflections and flickering
-        metalness: 0 // No metallic properties
+    const floorMat = new THREE.MeshBasicMaterial({
+        color: 0xE8E0D0 // Pure solid color - unaffected by lighting
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
