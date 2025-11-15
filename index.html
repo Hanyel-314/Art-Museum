@@ -1457,16 +1457,16 @@
             // Store selected painting data
             selectedPainting = artworkData;
 
-            // White fade-in transition
+            // White fade-in transition (slower, more gentle)
             const whiteFade = document.createElement('div');
             whiteFade.style.position = 'fixed';
             whiteFade.style.top = '0';
             whiteFade.style.left = '0';
             whiteFade.style.width = '100%';
             whiteFade.style.height = '100%';
-            whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
+            whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.98) 100%)';
             whiteFade.style.opacity = '0';
-            whiteFade.style.transition = 'opacity 0.8s ease-in-out';
+            whiteFade.style.transition = 'opacity 1s ease-in-out';
             whiteFade.style.zIndex = '1999';
             whiteFade.style.pointerEvents = 'none';
             document.body.appendChild(whiteFade);
@@ -1510,21 +1510,20 @@
                 currentView = 'DETAIL';
                 console.log('✅ Detail view ready - pure black 2D overlay');
 
-                // Wait a bit at peak brightness, then fade out white and fade in detail
+                // Wait at peak brightness, then create a smooth crossfade
                 setTimeout(() => {
-                    // Fade in the detail overlay
-                    detailOverlay.style.transition = 'opacity 0.8s ease-in-out';
+                    // Simultaneously fade in detail and fade out white (crossfade effect)
+                    detailOverlay.style.transition = 'opacity 1.2s ease-in-out';
                     detailOverlay.style.opacity = '1';
 
-                    // Fade out white overlay
-                    whiteFade.style.transition = 'opacity 0.8s ease-in-out';
+                    whiteFade.style.transition = 'opacity 1.2s ease-in-out';
                     whiteFade.style.opacity = '0';
 
                     setTimeout(() => {
                         document.body.removeChild(whiteFade);
-                    }, 800);
-                }, 300);
-            }, 800);
+                    }, 1200);
+                }, 400);
+            }, 1000);
         }
 
         function closeDetailOverlay() {
