@@ -1048,6 +1048,7 @@ function viewWall(side) {
             currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
             isAnimating = false;
             backBtn.textContent = '← Back to Corridor';
+            backBtn.classList.remove('hidden'); // Show back button
             console.log(`✅ Viewing ${side} wall - all 3 paintings visible`);
         }
     );
@@ -1320,6 +1321,7 @@ function goBack() {
                 currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
                 isAnimating = false;
                 backBtn.textContent = '← Back to Corridor';
+                backBtn.classList.remove('hidden'); // Show back button
             }
         );
 
