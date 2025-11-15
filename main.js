@@ -128,7 +128,7 @@ function init() {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = false; // Disable shadow rendering completely
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
@@ -143,7 +143,7 @@ function init() {
 
     const sunLight = new THREE.DirectionalLight(0xFFE4B5, 1.2);
     sunLight.position.set(10, 15, 10);
-    sunLight.castShadow = true;
+    sunLight.castShadow = false; // Disable all shadows
     sunLight.shadow.camera.left = -15;
     sunLight.shadow.camera.right = 15;
     sunLight.shadow.camera.top = 15;
