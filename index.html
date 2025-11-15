@@ -939,6 +939,82 @@
         }
 
         // ============================================
+        // HELPER FUNCTIONS
+        // ============================================
+
+        function createMarbleTexture() {
+            // Create a procedural marble texture using canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            // Base cream/beige color
+            ctx.fillStyle = '#F5F0E8';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add marble veins (darker brownish-grey lines)
+            ctx.strokeStyle = 'rgba(180, 170, 160, 0.3)';
+            ctx.lineWidth = 2;
+
+            // Create flowing veins
+            for (let i = 0; i < 8; i++) {
+                ctx.beginPath();
+                const startX = Math.random() * canvas.width;
+                const startY = Math.random() * canvas.height;
+                ctx.moveTo(startX, startY);
+
+                // Create organic curves
+                for (let j = 0; j < 5; j++) {
+                    const cpX1 = startX + Math.random() * 200 - 100;
+                    const cpY1 = startY + Math.random() * 200 - 100;
+                    const cpX2 = startX + Math.random() * 200 - 100;
+                    const cpY2 = startY + Math.random() * 200 - 100;
+                    const endX = startX + Math.random() * 300 - 150;
+                    const endY = startY + Math.random() * 300 - 150;
+                    ctx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, endX, endY);
+                }
+                ctx.stroke();
+            }
+
+            // Add lighter veins for depth
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                const startX = Math.random() * canvas.width;
+                const startY = Math.random() * canvas.height;
+                ctx.moveTo(startX, startY);
+
+                for (let j = 0; j < 3; j++) {
+                    const cpX1 = startX + Math.random() * 150 - 75;
+                    const cpY1 = startY + Math.random() * 150 - 75;
+                    const cpX2 = startX + Math.random() * 150 - 75;
+                    const cpY2 = startY + Math.random() * 150 - 75;
+                    const endX = startX + Math.random() * 200 - 100;
+                    const endY = startY + Math.random() * 200 - 100;
+                    ctx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, endX, endY);
+                }
+                ctx.stroke();
+            }
+
+            // Add subtle noise/texture
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const noise = (Math.random() - 0.5) * 10;
+                data[i] += noise;     // R
+                data[i + 1] += noise; // G
+                data[i + 2] += noise; // B
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+            return texture;
+        }
+
+        // ============================================
         // CORRIDOR SCENE - Baroque Gallery
         // ============================================
 
@@ -957,19 +1033,27 @@
                 side: THREE.DoubleSide
             });
 
-            // Floor - extends from z=0 to z=-30
+            // Floor - polished marble with tiles
             const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
+
+            // Create marble texture procedurally
+            const marbleTexture = createMarbleTexture();
+            marbleTexture.wrapS = THREE.RepeatWrapping;
+            marbleTexture.wrapT = THREE.RepeatWrapping;
+            marbleTexture.repeat.set(corridorWidth / 2, corridorLength / 2); // Large tiles
+
             const floorMat = new THREE.MeshStandardMaterial({
-                color: 0xF8F4E8,
-                roughness: 0.1,
-                metalness: 0.4,
-                envMapIntensity: 1.0,
+                map: marbleTexture,
+                color: 0xFFFBF5, // Warm light beige tint
+                roughness: 0.25,
+                metalness: 0.05,
+                envMapIntensity: 0.6,
                 side: THREE.DoubleSide
             });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             floor.position.set(0, 0, -corridorLength / 2); // Center at z=-15, y=0 (main floor at ground level, entrance ground is at -0.1)
-            floor.receiveShadow = false; // No shadows on floor
+            floor.receiveShadow = true; // Enable shadows for realistic lighting
             floor.visible = false;
             corridorGroup.push(floor);
             scene.add(floor);
@@ -1057,6 +1141,10 @@
             // Paintings at z = -5, -10, -15 (evenly spaced, clearly visible)
             createWallPaintings('left', -corridorWidth / 2 + 0.15, leftWallPaintings);
             createWallPaintings('right', corridorWidth / 2 - 0.15, rightWallPaintings);
+
+            // Decorative frames (non-interactive) extending toward the sculpture
+            createDecorativeFrames('left', -corridorWidth / 2 + 0.15);
+            createDecorativeFrames('right', corridorWidth / 2 - 0.15);
 
             // Sculpture at far end
             createCorridorSculpture();
@@ -1349,6 +1437,113 @@
             });
 
             console.log(`✅ Created ${artworks.length} paintings on ${side} wall`);
+        }
+
+        function createDecorativeFrames(side, xPos) {
+            // Non-interactive decorative frames to enrich the gallery walls
+            // Placed further down the corridor (after the main interactive paintings)
+            const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+
+            // Define decorative frames with varied sizes and positions
+            const decorativeFrames = [
+                { z: -18, width: 1.8, height: 1.8, yOffset: 0, color: 0x9B8B7E },
+                { z: -21, width: 1.6, height: 2.0, yOffset: 0.2, color: 0xA89080 },
+                { z: -24, width: 1.9, height: 1.7, yOffset: -0.15, color: 0x8E7E6F }
+            ];
+
+            decorativeFrames.forEach((config) => {
+                const frameGroup = new THREE.Group();
+                frameGroup.position.set(xPos, 2.5 + config.yOffset, config.z);
+                frameGroup.rotation.y = rotation;
+                frameGroup.visible = false;
+                // NO clickable userData - these are purely decorative
+
+                // Canvas with muted abstract color
+                const canvasGeo = new THREE.PlaneGeometry(config.width, config.height);
+                const canvasMat = new THREE.MeshStandardMaterial({
+                    color: config.color,
+                    roughness: 0.8,
+                    metalness: 0.05,
+                    opacity: 0.9,
+                    transparent: true
+                });
+                const canvas = new THREE.Mesh(canvasGeo, canvasMat);
+                canvas.position.z = 0.03;
+                frameGroup.add(canvas);
+
+                // Glass overlay (lighter than main paintings)
+                const glassGeo = new THREE.PlaneGeometry(config.width + 0.1, config.height + 0.1);
+                const glassMat = new THREE.MeshStandardMaterial({
+                    color: 0xFFFFFF,
+                    transparent: true,
+                    opacity: 0.05,
+                    roughness: 0.05,
+                    metalness: 0.2
+                });
+                const glass = new THREE.Mesh(glassGeo, glassMat);
+                glass.position.z = 0.08;
+                frameGroup.add(glass);
+
+                // Gold frame (slightly narrower than main paintings)
+                const frameColor = 0xC9A961; // Slightly muted gold
+                const frameMat = new THREE.MeshStandardMaterial({
+                    color: frameColor,
+                    roughness: 0.4,
+                    metalness: 0.7
+                });
+
+                const frameThick = 0.1;
+                const frameDepth = 0.12;
+                const frameExtend = (config.width + config.height) / 20; // Scale with size
+
+                const topFrame = new THREE.Mesh(
+                    new THREE.BoxGeometry(config.width + frameExtend, frameThick, frameDepth),
+                    frameMat
+                );
+                topFrame.position.y = config.height / 2 + frameThick / 2;
+                frameGroup.add(topFrame);
+
+                const bottomFrame = new THREE.Mesh(
+                    new THREE.BoxGeometry(config.width + frameExtend, frameThick, frameDepth),
+                    frameMat
+                );
+                bottomFrame.position.y = -(config.height / 2 + frameThick / 2);
+                frameGroup.add(bottomFrame);
+
+                const leftFrame = new THREE.Mesh(
+                    new THREE.BoxGeometry(frameThick, config.height, frameDepth),
+                    frameMat
+                );
+                leftFrame.position.x = -(config.width / 2 + frameThick / 2);
+                frameGroup.add(leftFrame);
+
+                const rightFrame = new THREE.Mesh(
+                    new THREE.BoxGeometry(frameThick, config.height, frameDepth),
+                    frameMat
+                );
+                rightFrame.position.x = config.width / 2 + frameThick / 2;
+                frameGroup.add(rightFrame);
+
+                // NO plaque, NO title label - purely decorative
+
+                // Add subtle lighting (softer than main paintings)
+                const washLight = new THREE.SpotLight(0xFFF4E0, 0.5, 5, Math.PI / 8, 0.5);
+                washLight.position.copy(frameGroup.position);
+                washLight.position.y += 1.5;
+                washLight.position.z += (side === 'left' ? -0.2 : 0.2);
+                washLight.target.position.copy(frameGroup.position);
+                washLight.visible = false;
+                washLight.castShadow = false;
+                corridorGroup.push(washLight);
+                corridorGroup.push(washLight.target);
+                scene.add(washLight);
+                scene.add(washLight.target);
+
+                corridorGroup.push(frameGroup);
+                scene.add(frameGroup);
+            });
+
+            console.log(`✅ Created ${decorativeFrames.length} decorative frames on ${side} wall`);
         }
 
         function createCorridorSculpture() {
