@@ -490,7 +490,7 @@
 
             // Camera setup
             camera = new THREE.PerspectiveCamera(
-                65,
+                75,
                 window.innerWidth / window.innerHeight,
                 0.1,
                 100
@@ -981,7 +981,7 @@
             const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
 
             artworks.forEach((artwork, i) => {
-                const zPos = -8 + (i * 8); // Spacing: -8, 0, 8
+                const zPos = -6 + (i * 6); // Spacing: -6, 0, 6 (better for 40m corridor)
 
                 const paintingGroup = new THREE.Group();
                 paintingGroup.position.set(xPos, 2.2, zPos);
@@ -1251,8 +1251,8 @@
 
             const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
             const targetPos = side === 'left'
-                ? new THREE.Vector3(-3.2, 1.7, 0)
-                : new THREE.Vector3(3.2, 1.7, 0);
+                ? new THREE.Vector3(-4.5, 1.7, 0)
+                : new THREE.Vector3(4.5, 1.7, 0);
 
             animateCamera(
                 camera.position.clone(),
@@ -1481,8 +1481,8 @@
                 const side = camera.position.x < 0 ? 'left' : 'right';
                 const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
                 const targetPos = side === 'left'
-                    ? new THREE.Vector3(-3.2, 1.7, 0)
-                    : new THREE.Vector3(3.2, 1.7, 0);
+                    ? new THREE.Vector3(-4.5, 1.7, 0)
+                    : new THREE.Vector3(4.5, 1.7, 0);
 
                 isAnimating = true;
                 animateCamera(
