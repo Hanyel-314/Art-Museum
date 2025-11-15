@@ -384,8 +384,8 @@ function createPillar(x, y, z) {
 function createCorridorScene() {
     console.log('Creating baroque corridor...');
 
-    // Extended corridor dimensions for dramatic perspective
-    const corridorLength = 40; // Much longer corridor
+    // Enclosed gallery space
+    const corridorLength = 20; // Shorter, enclosed space
     const corridorWidth = 12; // Wider corridor
 
     // Glossy marble floor with reflective properties
@@ -420,14 +420,14 @@ function createCorridorScene() {
     // Add baroque ceiling fresco panels
     createCeilingFrescoes(corridorLength);
 
-    // Crystal chandeliers along the corridor
-    for (let i = -15; i <= 15; i += 10) {
+    // Crystal chandeliers along the corridor - adjusted for shorter space
+    for (let i = -6; i <= 6; i += 6) {
         createChandelier(0, 5.5, i);
     }
 
     // Warm museum lighting from chandeliers
     const warmLightColor = 0xFFE8C0; // Warm golden light
-    for (let i = -18; i <= 18; i += 6) {
+    for (let i = -8; i <= 8; i += 4) {
         const chandLight = new THREE.PointLight(warmLightColor, 0.8, 15);
         chandLight.position.set(0, 5.2, i);
         chandLight.visible = false;
@@ -502,10 +502,9 @@ function createCorridorScene() {
 function createCeilingFrescoes(corridorLength) {
     // Create baroque fresco panels on ceiling
     const frescoPanels = [
-        { color: 0xD4A574, z: -15 }, // Golden/amber tones
-        { color: 0xB8C4D8, z: -5 },  // Sky blue
-        { color: 0xE8C4A8, z: 5 },   // Peachy tones
-        { color: 0xC4B8D8, z: 15 }   // Light purple
+        { color: 0xD4A574, z: -6 }, // Golden/amber tones
+        { color: 0xB8C4D8, z: 0 },  // Sky blue
+        { color: 0xE8C4A8, z: 6 }   // Peachy tones
     ];
 
     frescoPanels.forEach(panel => {
@@ -733,7 +732,7 @@ function createBaroquePaintings(side, xPos, storageArray) {
 function createCorridorSculpture() {
     // Create an elegant classical sculpture at the end of the corridor
     const sculptureGroup = new THREE.Group();
-    sculptureGroup.position.set(0, 0, 18); // Position at far vanishing point
+    sculptureGroup.position.set(0, 0, 8); // Closer to viewer, at end wall
     sculptureGroup.visible = false;
 
     // Pedestal base
@@ -803,7 +802,7 @@ function createCorridorSculpture() {
 
     // Spotlight on sculpture
     const sculptureLight = new THREE.SpotLight(0xFFF4E0, 1.0, 10, Math.PI / 6, 0.5);
-    sculptureLight.position.set(0, 4.2, 9);
+    sculptureLight.position.set(0, 4.2, 4); // Adjusted for new sculpture position
     sculptureLight.target = sculptureGroup;
     sculptureLight.visible = false;
     sculptureLight.castShadow = true;
@@ -991,13 +990,13 @@ function createWhiteLightTransition() {
     setTimeout(() => {
         entranceDoor.visible = false;
         scene.background = new THREE.Color(0xFAF8F3);
-        scene.fog = new THREE.Fog(0xFAF8F3, 25, 55); // Adjusted fog for 40m corridor
+        scene.fog = new THREE.Fog(0xFAF8F3, 15, 25); // Adjusted for shorter space
         corridorGroup.forEach(obj => obj.visible = true);
 
         // Move camera to corridor position - looking down the corridor
-        camera.position.set(0, 1.7, -18); // Further back to see perspective
+        camera.position.set(0, 1.7, -8); // Closer starting position
         camera.rotation.set(0, 0, 0);
-        camera.lookAt(0, 2, 10); // Look toward far end to see perspective
+        camera.lookAt(0, 2, 5); // Look toward sculpture
     }, 800);
 
     // Fade from white
@@ -1266,7 +1265,7 @@ function goBack() {
 
         // Restore corridor
         scene.background = new THREE.Color(0xFAF8F3);
-        scene.fog = new THREE.Fog(0xFAF8F3, 25, 55); // Match corridor fog settings
+        scene.fog = new THREE.Fog(0xFAF8F3, 15, 25); // Match corridor fog settings
         hideArtworkInfo();
         corridorGroup.forEach(obj => obj.visible = true);
         renderer.domElement.style.cursor = 'default';
@@ -1295,7 +1294,7 @@ function goBack() {
         isAnimating = true;
         animateCamera(
             camera.position.clone(),
-            new THREE.Vector3(0, 1.7, -18), // Back of corridor looking forward
+            new THREE.Vector3(0, 1.7, -8), // Adjusted for shorter corridor
             camera.rotation.clone(),
             new THREE.Euler(0, 0, 0),
             800,
@@ -1305,7 +1304,7 @@ function goBack() {
                 backBtn.textContent = '← Exit Museum';
                 wallHintLeft.classList.remove('hidden');
                 wallHintRight.classList.remove('hidden');
-                camera.lookAt(0, 2, 10); // Look toward far end
+                camera.lookAt(0, 2, 5); // Look toward sculpture at end
             }
         );
 
