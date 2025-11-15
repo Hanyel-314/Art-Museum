@@ -35,6 +35,7 @@ let detailKeyLight, detailRimLight, detailFillLight;
 const tooltip = document.getElementById('entrance-tooltip');
 const backBtn = document.getElementById('back-button');
 const infoPanel = document.getElementById('artwork-info');
+const closeInfoBtn = document.getElementById('close-info');
 const wallHintLeft = document.getElementById('wall-hint-left');
 const wallHintRight = document.getElementById('wall-hint-right');
 
@@ -172,6 +173,7 @@ function init() {
     canvas.addEventListener('mouseleave', onMouseLeave);
     canvas.addEventListener('wheel', onWheel, { passive: false });
     backBtn.addEventListener('click', goBack);
+    closeInfoBtn.addEventListener('click', goBack);
 
     console.log('✅ Event listeners attached');
 
@@ -1060,172 +1062,82 @@ function viewArtworkDetail(artworkData) {
     // Hide corridor
     corridorGroup.forEach(obj => obj.visible = false);
 
-    // Darken background
-    scene.background = new THREE.Color(0x1C1C1C);
-    scene.fog = new THREE.Fog(0x1C1C1C, 8, 15);
+    // Pure black background (no room, no environment)
+    scene.background = new THREE.Color(0x000000);
+    scene.fog = null; // Remove fog completely
 
-    // Create detailed 3D artwork
+    // Create simplified artwork display (UI-style presentation)
     detailArtwork = new THREE.Group();
-    detailArtwork.position.set(0, 1.7, 0);
+    detailArtwork.position.set(-0.5, 1.7, 0); // Slightly left of center
 
     const size = 3.5;
-    const canvasDepth = 0.12;
 
-    // Front canvas (painted surface)
+    // Front canvas (painted surface) - flat, no depth
     const frontGeo = new THREE.PlaneGeometry(size, size);
-    const frontMat = new THREE.MeshStandardMaterial({
-        color: artworkData.color,
-        roughness: 0.75,
-        metalness: 0
+    const frontMat = new THREE.MeshBasicMaterial({
+        color: artworkData.color
     });
     const front = new THREE.Mesh(frontGeo, frontMat);
-    front.position.z = canvasDepth / 2;
+    front.position.z = 0;
     detailArtwork.add(front);
 
-    // Canvas edges (visible when rotated)
-    const edgeColor = 0xE8E0D0;
-    const edgeMat = new THREE.MeshStandardMaterial({
-        color: edgeColor,
-        roughness: 0.9
+    // Simple golden frame (clean rectangular border)
+    const frameMat = new THREE.MeshBasicMaterial({
+        color: 0xD4AF37, // Golden color
+        side: THREE.DoubleSide
     });
 
-    const topEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(size, 0.02, canvasDepth),
-        edgeMat
-    );
-    topEdge.position.y = size / 2;
-    detailArtwork.add(topEdge);
+    const frameThick = 0.15;
+    const frameDepth = 0.08;
 
-    const bottomEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(size, 0.02, canvasDepth),
-        edgeMat
-    );
-    bottomEdge.position.y = -size / 2;
-    detailArtwork.add(bottomEdge);
-
-    const leftEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(0.02, size, canvasDepth),
-        edgeMat
-    );
-    leftEdge.position.x = -size / 2;
-    detailArtwork.add(leftEdge);
-
-    const rightEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(0.02, size, canvasDepth),
-        edgeMat
-    );
-    rightEdge.position.x = size / 2;
-    detailArtwork.add(rightEdge);
-
-    // Back of canvas (linen texture)
-    const backGeo = new THREE.PlaneGeometry(size - 0.15, size - 0.15);
-    const backMat = new THREE.MeshStandardMaterial({
-        color: 0xC8B896,
-        roughness: 0.95
-    });
-    const back = new THREE.Mesh(backGeo, backMat);
-    back.position.z = -canvasDepth / 2;
-    back.rotation.y = Math.PI;
-    detailArtwork.add(back);
-
-    // Wooden support bars (visible on back)
-    const barMat = new THREE.MeshStandardMaterial({
-        color: 0x5D4E37,
-        roughness: 0.85
-    });
-
-    const bar1 = new THREE.Mesh(
-        new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
-        barMat
-    );
-    bar1.position.set(0, size / 3, -canvasDepth / 2 - 0.03);
-    detailArtwork.add(bar1);
-
-    const bar2 = new THREE.Mesh(
-        new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
-        barMat
-    );
-    bar2.position.set(0, -size / 3, -canvasDepth / 2 - 0.03);
-    detailArtwork.add(bar2);
-
-    const bar3 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.12, size - 0.5, 0.05),
-        barMat
-    );
-    bar3.position.set(0, 0, -canvasDepth / 2 - 0.03);
-    detailArtwork.add(bar3);
-
-    // Ornate frame
-    const frameMat = new THREE.MeshStandardMaterial({
-        color: 0x3E2723,
-        roughness: 0.5,
-        metalness: 0.15
-    });
-
-    const frameThick = 0.2;
-    const frameDepth = canvasDepth + 0.15;
-
+    // Top frame bar
     const topFrame = new THREE.Mesh(
-        new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
+        new THREE.BoxGeometry(size + 2 * frameThick, frameThick, frameDepth),
         frameMat
     );
     topFrame.position.y = size / 2 + frameThick / 2;
+    topFrame.position.z = frameDepth / 2;
     detailArtwork.add(topFrame);
 
+    // Bottom frame bar
     const bottomFrame = new THREE.Mesh(
-        new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
+        new THREE.BoxGeometry(size + 2 * frameThick, frameThick, frameDepth),
         frameMat
     );
     bottomFrame.position.y = -(size / 2 + frameThick / 2);
+    bottomFrame.position.z = frameDepth / 2;
     detailArtwork.add(bottomFrame);
 
+    // Left frame bar
     const leftFrame = new THREE.Mesh(
         new THREE.BoxGeometry(frameThick, size, frameDepth),
         frameMat
     );
     leftFrame.position.x = -(size / 2 + frameThick / 2);
+    leftFrame.position.z = frameDepth / 2;
     detailArtwork.add(leftFrame);
 
+    // Right frame bar
     const rightFrame = new THREE.Mesh(
         new THREE.BoxGeometry(frameThick, size, frameDepth),
         frameMat
     );
     rightFrame.position.x = size / 2 + frameThick / 2;
+    rightFrame.position.z = frameDepth / 2;
     detailArtwork.add(rightFrame);
-
-    // Protective glass with subtle reflection
-    const glassGeo = new THREE.PlaneGeometry(size + 0.3, size + 0.3);
-    const glassMat = new THREE.MeshStandardMaterial({
-        color: 0xFFFFFF,
-        transparent: true,
-        opacity: 0.04,
-        roughness: 0.02,
-        metalness: 0.3
-    });
-    const glass = new THREE.Mesh(glassGeo, glassMat);
-    glass.position.z = canvasDepth / 2 + 0.08;
-    detailArtwork.add(glass);
 
     scene.add(detailArtwork);
     selectedPainting = artworkData;
 
-    // Professional 3-point lighting
-    // Key light (main light from upper left)
-    detailKeyLight = new THREE.SpotLight(0xFFFFFF, 1.2, 15, Math.PI / 6, 0.4);
-    detailKeyLight.position.set(-4, 4, 6);
-    detailKeyLight.target.position.set(0, 1.7, 0);
+    // Minimal lighting for UI readability
+    // Since we're using MeshBasicMaterial, this won't affect the artwork/frame
+    // but keeps the scene consistent
+    detailKeyLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
     scene.add(detailKeyLight);
-    scene.add(detailKeyLight.target);
 
-    // Rim light (back-right highlight)
-    detailRimLight = new THREE.PointLight(0xFFF4E0, 0.6, 12);
-    detailRimLight.position.set(3, 2.5, -3);
-    scene.add(detailRimLight);
-
-    // Fill light (soft front fill)
-    detailFillLight = new THREE.DirectionalLight(0xFFFFFF, 0.3);
-    detailFillLight.position.set(2, 1, 5);
-    scene.add(detailFillLight);
+    // Set other lights to null for cleanup purposes
+    detailRimLight = null;
+    detailFillLight = null;
 
     // Animate camera to viewing position
     animateCamera(
@@ -1258,9 +1170,7 @@ function goBack() {
 
         // Remove lighting
         if (detailKeyLight) scene.remove(detailKeyLight);
-        if (detailRimLight) scene.remove(detailRimLight);
-        if (detailFillLight) scene.remove(detailFillLight);
-        if (detailKeyLight && detailKeyLight.target) scene.remove(detailKeyLight.target);
+        // detailRimLight and detailFillLight are null in new setup
         detailKeyLight = detailRimLight = detailFillLight = null;
 
         // Restore corridor
