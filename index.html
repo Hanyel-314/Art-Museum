@@ -755,7 +755,7 @@
         function createCorridorScene() {
             console.log('Creating baroque corridor...');
 
-            const corridorLength = 20; // Shorter, enclosed space
+            const corridorLength = 30; // Extended enclosed gallery space
             const corridorWidth = 12;
 
             // Glossy marble floor
@@ -790,14 +790,14 @@
             // Ceiling frescoes
             createCeilingFrescoes(corridorLength);
 
-            // Crystal chandeliers - adjusted for shorter space
-            for (let i = -6; i <= 6; i += 6) {
+            // Crystal chandeliers - distributed along 30m corridor
+            for (let i = -8; i <= 8; i += 8) {
                 createChandelier(0, 5.5, i);
             }
 
             // Chandelier lighting
             const warmLightColor = 0xFFE8C0;
-            for (let i = -8; i <= 8; i += 4) {
+            for (let i = -12; i <= 12; i += 6) {
                 const chandLight = new THREE.PointLight(warmLightColor, 0.8, 15);
                 chandLight.position.set(0, 5.2, i);
                 chandLight.visible = false;
@@ -870,9 +870,9 @@
 
         function createCeilingFrescoes(corridorLength) {
             const frescoPanels = [
-                { color: 0xD4A574, z: -6 },
+                { color: 0xD4A574, z: -8 },
                 { color: 0xB8C4D8, z: 0 },
-                { color: 0xE8C4A8, z: 6 }
+                { color: 0xE8C4A8, z: 8 }
             ];
 
             frescoPanels.forEach(panel => {
@@ -1088,7 +1088,7 @@
 
         function createCorridorSculpture() {
             const sculptureGroup = new THREE.Group();
-            sculptureGroup.position.set(0, 0, 8); // Closer to viewer, at end wall
+            sculptureGroup.position.set(0, 0, 13); // At far end of 30m corridor
             sculptureGroup.visible = false;
 
             const pedestalGeo = new THREE.CylinderGeometry(0.6, 0.7, 0.3, 16);
@@ -1149,7 +1149,7 @@
             sculptureGroup.add(rightArm);
 
             const sculptureLight = new THREE.SpotLight(0xFFF4E0, 1.0, 10, Math.PI / 6, 0.5);
-            sculptureLight.position.set(0, 4.2, 4); // Adjusted for new sculpture position
+            sculptureLight.position.set(0, 4.2, 9); // Adjusted for sculpture at z=13
             sculptureLight.target = sculptureGroup;
             sculptureLight.visible = false;
             sculptureLight.castShadow = true;
@@ -1215,12 +1215,12 @@
             setTimeout(() => {
                 entranceDoor.visible = false;
                 scene.background = new THREE.Color(0xFAF8F3);
-                scene.fog = new THREE.Fog(0xFAF8F3, 15, 25); // Adjusted for shorter space
+                scene.fog = new THREE.Fog(0xFAF8F3, 20, 35); // Adjusted for 30m corridor
                 corridorGroup.forEach(obj => obj.visible = true);
 
-                camera.position.set(0, 1.7, -8); // Closer starting position
+                camera.position.set(0, 1.7, -12); // Starting position to see all paintings
                 camera.rotation.set(0, 0, 0);
-                camera.lookAt(0, 2, 5); // Look toward sculpture
+                camera.lookAt(0, 2, 8); // Look toward sculpture at end
             }, 800);
 
             setTimeout(() => {
@@ -1478,7 +1478,7 @@
                 detailKeyLight = detailRimLight = detailFillLight = null;
 
                 scene.background = new THREE.Color(0xFAF8F3);
-                scene.fog = new THREE.Fog(0xFAF8F3, 15, 25);
+                scene.fog = new THREE.Fog(0xFAF8F3, 20, 35);
                 hideArtworkInfo();
                 corridorGroup.forEach(obj => obj.visible = true);
                 renderer.domElement.style.cursor = 'default';
@@ -1506,7 +1506,7 @@
                 isAnimating = true;
                 animateCamera(
                     camera.position.clone(),
-                    new THREE.Vector3(0, 1.7, -8), // Adjusted for shorter corridor
+                    new THREE.Vector3(0, 1.7, -12), // Return to corridor starting position
                     camera.rotation.clone(),
                     new THREE.Euler(0, 0, 0),
                     800,
@@ -1516,7 +1516,7 @@
                         backText.textContent = 'Exit Museum';
                         wallHintLeft.classList.remove('hidden');
                         wallHintRight.classList.remove('hidden');
-                        camera.lookAt(0, 2, 5); // Look toward sculpture at end
+                        camera.lookAt(0, 2, 8); // Look toward sculpture at end
                     }
                 );
 
