@@ -1321,32 +1321,69 @@
         }
 
         function createPlaqueLabel(text) {
-            // Create an offscreen canvas to render the text
+            // Create high-resolution offscreen canvas for crisp text
             const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 128;
-            const ctx = canvas.getContext('2d');
+            canvas.width = 2048;  // 4x resolution for sharp rendering
+            canvas.height = 512;  // 4x resolution
+            const ctx = canvas.getContext('2d', { alpha: false });
+
+            // Enable high-quality text rendering
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
 
             // Dark wood background
             ctx.fillStyle = '#3b2a16';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Gold text in serif font
-            ctx.font = 'bold 42px "Times New Roman", serif';
+            // Add subtle wood grain texture
+            ctx.fillStyle = 'rgba(70, 50, 30, 0.15)';
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const width = Math.random() * 100 + 50;
+                ctx.fillRect(x, y, width, 2);
+            }
+
+            // Gold text with shadow for depth
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 4;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+
+            // High-resolution serif font (4x size for 4x canvas)
+            ctx.font = 'bold 168px "Garamond", "Times New Roman", serif';
             ctx.fillStyle = '#f5e2a8';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
-            // Create texture from canvas
+            // Add slight highlight on text for polished look
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255, 250, 230, 0.3)';
+            ctx.font = 'bold 168px "Garamond", "Times New Roman", serif';
+            ctx.fillText(text, canvas.width / 2 - 1, canvas.height / 2 - 2);
+
+            // Create texture from canvas with optimal filtering
             const texture = new THREE.CanvasTexture(canvas);
             texture.needsUpdate = true;
+
+            // Critical: Set proper texture filtering for sharp text
+            texture.minFilter = THREE.LinearFilter;  // Prevents pixelation when far
+            texture.magFilter = THREE.LinearFilter;  // Smooth when close
+            texture.generateMipmaps = false;  // Not needed with LinearFilter
+
+            // Enable anisotropic filtering for maximum sharpness at angles
+            const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+            texture.anisotropy = Math.min(16, maxAnisotropy);
 
             // Create plane with the text texture
             const labelGeo = new THREE.PlaneGeometry(0.95, 0.14);
             const labelMat = new THREE.MeshBasicMaterial({
                 map: texture,
-                transparent: false
+                transparent: false,
+                depthWrite: true,
+                depthTest: true
             });
             const labelMesh = new THREE.Mesh(labelGeo, labelMat);
 
