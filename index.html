@@ -112,28 +112,6 @@
             z-index: 100;
         }
 
-        /* Entrance Tooltip */
-        .tooltip {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.85);
-            color: #fff;
-            padding: 1.2rem 2rem;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            pointer-events: none;
-            animation: pulse 2s infinite;
-            border: 2px solid rgba(212, 175, 55, 0.5);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.05); }
-        }
-
         .hidden {
             display: none !important;
         }
@@ -317,11 +295,6 @@
             .nav-button {
                 bottom: 1rem;
                 left: 1rem;
-            }
-
-            .tooltip {
-                font-size: 1rem;
-                padding: 1rem 1.5rem;
             }
         }
 
@@ -524,11 +497,6 @@
 
     <!-- UI Overlay -->
     <div id="ui-overlay">
-        <!-- Entrance Tooltip -->
-        <div id="entrance-tooltip" class="tooltip hidden">
-            Click to Enter Museum
-        </div>
-
         <!-- Back Button -->
         <button id="back-button" class="nav-button hidden">
             <span class="back-arrow">←</span> <span id="back-text">Back</span>
@@ -617,7 +585,6 @@
         let detailKeyLight, detailRimLight, detailFillLight;
 
         // UI Elements
-        const tooltip = document.getElementById('entrance-tooltip');
         const backBtn = document.getElementById('back-button');
         const backText = document.getElementById('back-text');
         const infoPanel = document.getElementById('artwork-info');
@@ -783,7 +750,6 @@
                 document.getElementById('loading-screen').classList.add('fade-out');
                 setTimeout(() => {
                     document.getElementById('loading-screen').style.display = 'none';
-                    tooltip.classList.remove('hidden');
                 }, 500);
             }, 1500);
 
@@ -869,16 +835,16 @@
 
             // Left door panel - pivot on LEFT edge for outward opening
             leftDoorPanel = new THREE.Group();
-            leftDoorPanel.position.set(-2.15, 2.5, 0.1);
+            leftDoorPanel.position.set(-2.4, 2.5, 0.1); // Moved left to create gap
 
-            const leftDoorGeo = new THREE.BoxGeometry(2, 5, 0.15);
+            const leftDoorGeo = new THREE.BoxGeometry(1.9, 5, 0.15); // Slightly narrower
             const doorMat = new THREE.MeshStandardMaterial({
                 color: 0x3E2723,
                 roughness: 0.6,
                 metalness: 0.1
             });
             const leftDoor = new THREE.Mesh(leftDoorGeo, doorMat);
-            leftDoor.position.x = 1;
+            leftDoor.position.x = 0.95; // Adjusted for new width
             leftDoor.castShadow = true;
             leftDoor.userData.clickable = true;
             leftDoor.userData.type = 'door';
@@ -893,15 +859,15 @@
             });
             const leftHandle = new THREE.Mesh(handleGeo, handleMat);
             leftHandle.rotation.z = Math.PI / 2;
-            leftHandle.position.set(1.6, 0, 0.12);
+            leftHandle.position.set(1.5, 0, 0.12); // Adjusted for new width
             leftDoorPanel.add(leftHandle);
 
             // Right door panel - pivot on RIGHT edge for outward opening
             rightDoorPanel = new THREE.Group();
-            rightDoorPanel.position.set(2.15, 2.5, 0.1);
+            rightDoorPanel.position.set(2.4, 2.5, 0.1); // Moved right to create gap
 
             const rightDoor = new THREE.Mesh(leftDoorGeo, doorMat);
-            rightDoor.position.x = -1;
+            rightDoor.position.x = -0.95; // Adjusted for new width
             rightDoor.castShadow = true;
             rightDoor.userData.clickable = true;
             rightDoor.userData.type = 'door';
@@ -909,7 +875,7 @@
 
             const rightHandle = new THREE.Mesh(handleGeo, handleMat);
             rightHandle.rotation.z = Math.PI / 2;
-            rightHandle.position.set(-1.6, 0, 0.12);
+            rightHandle.position.set(-1.5, 0, 0.12); // Adjusted for new width
             rightDoorPanel.add(rightHandle);
 
             entranceDoor.add(leftDoorPanel);
@@ -1401,8 +1367,6 @@
             if (isAnimating) return;
             isAnimating = true;
             console.log('🚶 Entering museum...');
-
-            tooltip.classList.add('hidden');
 
             // Animate doors opening OUTWARD
             const duration = 1500;
