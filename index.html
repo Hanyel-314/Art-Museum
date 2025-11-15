@@ -626,7 +626,8 @@
                     year: "1889",
                     medium: "Oil on canvas",
                     description: "Painted during van Gogh's stay at the Saint-Paul-de-Mausole asylum in Saint-Rémy-de-Provence, this iconic masterpiece depicts a swirling, turbulent night sky filled with luminous stars and a crescent moon hovering over a sleeping village. The bold, expressive brushstrokes create a sense of movement and emotional intensity, with deep blues and vibrant yellows contrasting to evoke both tranquility and inner turmoil. The cypress tree in the foreground reaches upward like a dark flame, symbolizing the connection between earth and sky, life and death. Van Gogh's revolutionary use of impasto technique and his ability to convey profound emotion through color and form have made this work one of the most recognized and celebrated paintings in art history, influencing generations of expressionist and modern artists.",
-                    color: 0x2B4C7E
+                    color: 0x2B4C7E,
+                    image: "星月夜.jpg"
                 },
                 {
                     title: "The Scream",
@@ -634,7 +635,8 @@
                     year: "1893",
                     medium: "Oil, tempera, pastel and crayon on cardboard",
                     description: "This powerful expressionist icon captures a moment of existential dread and psychological anguish that resonates universally across cultures and time periods. The central figure stands on a bridge, hands pressed against its face in a gesture of overwhelming anxiety, its mouth open in a silent scream that seems to reverberate through the undulating landscape. The blood-red and orange sky swirls dramatically above a dark blue fjord, creating a sense of cosmic disturbance that mirrors the figure's inner turmoil. Munch's use of sinuous, flowing lines and intense, non-naturalistic colors breaks away from traditional representation to express raw human emotion. The painting reflects the artist's own struggles with mental health and his desire to depict \"the scream of nature.\" Its haunting imagery has become a universal symbol of modern anxiety and has profoundly influenced the development of Expressionism, making it one of the most iconic images in Western art.",
-                    color: 0xD94A3D
+                    color: 0xD94A3D,
+                    image: "呐喊.jpg"
                 },
                 {
                     title: "Girl with a Pearl Earring",
@@ -642,7 +644,8 @@
                     year: "c. 1665",
                     medium: "Oil on canvas",
                     description: "Often called the \"Mona Lisa of the North,\" this intimate portrait captures a young girl turning to gaze directly at the viewer with an enigmatic expression that has captivated audiences for centuries. Set against a dark, plain background, the subject's face emerges from the shadows with remarkable luminosity, showcasing Vermeer's masterful command of light and shadow. The girl wears an exotic turban of blue and gold fabric, and the titular pearl earring catches the light with a brilliant highlight, demonstrating Vermeer's extraordinary ability to render the play of light on different surfaces. The soft modeling of her features, the subtle parting of her lips, and the liquid quality of her eyes create an impression of life captured in a fleeting moment. Vermeer's meticulous technique, using thin glazes of paint to build up subtle gradations of tone and color, achieves a photographic realism that was revolutionary for the Dutch Golden Age and continues to inspire artists and viewers alike.",
-                    color: 0x8B7355
+                    color: 0x8B7355,
+                    image: "戴珍珠耳环的少女.jpg"
                 }
             ],
             right: [
@@ -652,7 +655,8 @@
                     year: "1503–1519",
                     medium: "Oil on poplar panel",
                     description: "Perhaps the most famous painting in the world, Leonardo da Vinci's portrait of Lisa Gherardini exemplifies the Renaissance ideals of harmony, balance, and psychological depth. The subject sits in a three-quarter pose before an imaginary landscape of winding paths, distant bridges, and misty mountains that seem to merge with the atmospheric background through Leonardo's pioneering sfumato technique. Her enigmatic smile, achieved through the subtle blending of shadows around her mouth and eyes, has fascinated viewers for over five centuries and sparked countless interpretations. The painting demonstrates Leonardo's deep understanding of anatomy, optics, and the natural world, with the figure's face and hands rendered with unprecedented realism while maintaining an idealized grace. The composition's pyramidal structure, the careful balance between the figure and landscape, and the revolutionary use of aerial perspective create a sense of depth and spatial harmony. The Mona Lisa represents the culmination of Renaissance portraiture and continues to influence artists worldwide, embodying timeless beauty and the mysterious complexity of human expression.",
-                    color: 0x8B7355
+                    color: 0x8B7355,
+                    image: "蒙娜丽莎.jpg"
                 },
                 {
                     title: "The Last Supper",
@@ -660,7 +664,8 @@
                     year: "1495–1498",
                     medium: "Tempera and oil on plaster",
                     description: "This monumental mural depicts the dramatic moment when Christ announces that one of his twelve apostles will betray him, capturing the varied psychological reactions of each disciple in a masterful display of human emotion and narrative complexity. Painted on the wall of the refectory at the Convent of Santa Maria delle Grazie in Milan, the composition uses strict one-point linear perspective with the vanishing point directly behind Christ's head, creating a powerful sense of depth and drawing the viewer's eye to the central figure. Leonardo arranged the twelve apostles in four groups of three, each responding differently to Christ's announcement—with gestures of shock, denial, grief, and questioning—while Judas is subtly identified by his position in shadow and his hand reaching toward the bread. The architectural setting, with its coffered ceiling and tapestries on the walls, frames the scene with Renaissance clarity and order, while the evening light streaming through the windows creates a serene backdrop for the unfolding drama. Despite significant deterioration due to Leonardo's experimental painting technique, this work remains one of the most influential religious paintings ever created, revolutionizing compositional narrative and emotional expression in art.",
-                    color: 0x8B6F47
+                    color: 0x8B6F47,
+                    image: "最后的晚餐.jpg"
                 },
                 {
                     title: "Sunflowers",
@@ -668,7 +673,8 @@
                     year: "1888",
                     medium: "Oil on canvas",
                     description: "From van Gogh's celebrated series of sunflower still lifes created in Arles, this vibrant painting showcases the artist's revolutionary approach to color and his ability to infuse ordinary subjects with profound emotional and symbolic significance. The composition features a vase filled with sunflowers in various stages of bloom—from fresh blossoms to withering heads—arranged against a brilliant yellow background that creates an almost overwhelming sense of warmth and vitality. Van Gogh's thick, energetic brushstrokes built up in layers of impasto give the flowers an intense tactile presence, with each petal and seed head rendered with passionate attention. The bold use of complementary yellows and oranges, applied with varying textures and intensities, creates a dynamic surface that seems to pulse with life and light. For van Gogh, sunflowers symbolized gratitude and devotion, and he created these works to decorate the room of his friend Paul Gauguin. The series represents a high point of van Gogh's artistic achievement, demonstrating his unique ability to transform simple natural subjects into powerful expressions of color, form, and emotion that would profoundly influence the development of modern art.",
-                    color: 0xFFB800
+                    color: 0xFFB800,
+                    image: "向日葵.jpg"
                 }
             ]
         };
@@ -1445,13 +1451,33 @@
                 paintingGroup.userData.data = artwork;
                 paintingGroup.userData.side = side;
 
-                // Canvas
+                // Canvas with real artwork image
                 const canvasGeo = new THREE.PlaneGeometry(2.2, 2.2);
                 const canvasMat = new THREE.MeshStandardMaterial({
-                    color: artwork.color,
+                    color: artwork.color, // Fallback color if image fails to load
                     roughness: 0.7,
                     metalness: 0
                 });
+
+                // Load real artwork image if available
+                if (artwork.image) {
+                    const textureLoader = new THREE.TextureLoader();
+                    textureLoader.load(
+                        artwork.image,
+                        (texture) => {
+                            // Success callback - apply the loaded texture
+                            canvasMat.map = texture;
+                            canvasMat.needsUpdate = true;
+                            console.log(`✅ Loaded image: ${artwork.image}`);
+                        },
+                        undefined,
+                        (error) => {
+                            // Error callback - keep the fallback color
+                            console.warn(`⚠️ Failed to load image: ${artwork.image}`, error);
+                        }
+                    );
+                }
+
                 const canvas = new THREE.Mesh(canvasGeo, canvasMat);
                 canvas.position.z = 0.03;
                 paintingGroup.add(canvas);
@@ -2174,7 +2200,18 @@
 
                 // Populate the 2D detail overlay
                 const colorHex = '#' + artworkData.color.toString(16).padStart(6, '0');
-                detailPainting.style.backgroundColor = colorHex;
+
+                // Use real artwork image if available
+                if (artworkData.image) {
+                    detailPainting.style.backgroundImage = `url('${artworkData.image}')`;
+                    detailPainting.style.backgroundSize = 'contain';
+                    detailPainting.style.backgroundPosition = 'center';
+                    detailPainting.style.backgroundRepeat = 'no-repeat';
+                    detailPainting.style.backgroundColor = '#000000'; // Black background behind the image
+                } else {
+                    detailPainting.style.backgroundColor = colorHex;
+                    detailPainting.style.backgroundImage = 'none';
+                }
 
                 detailTitle.textContent = artworkData.title;
                 detailArtist.textContent = artworkData.artist;
