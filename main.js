@@ -202,7 +202,7 @@ function createEntranceScene() {
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
+    ground.receiveShadow = false;
     scene.add(ground);
 
     // Museum facade - stone wall
@@ -214,8 +214,8 @@ function createEntranceScene() {
     });
     const facade = new THREE.Mesh(facadeGeo, facadeMat);
     facade.position.set(0, 5, -0.5);
-    facade.receiveShadow = true;
-    facade.castShadow = true;
+    facade.receiveShadow = false;
+    facade.castShadow = false;
     scene.add(facade);
 
     // Decorative cornice on top
@@ -272,7 +272,7 @@ function createEntranceScene() {
     });
     const leftDoor = new THREE.Mesh(leftDoorGeo, doorMat);
     leftDoor.position.x = 1; // Door extends to the right from pivot
-    leftDoor.castShadow = true;
+    leftDoor.castShadow = false;
     leftDoor.userData.clickable = true;
     leftDoor.userData.type = 'door';
     leftDoorPanel.add(leftDoor);
@@ -295,7 +295,7 @@ function createEntranceScene() {
 
     const rightDoor = new THREE.Mesh(leftDoorGeo, doorMat);
     rightDoor.position.x = -1; // Door extends to the left from pivot
-    rightDoor.castShadow = true;
+    rightDoor.castShadow = false;
     rightDoor.userData.clickable = true;
     rightDoor.userData.type = 'door';
     rightDoorPanel.add(rightDoor);
@@ -370,8 +370,8 @@ function createPillar(x, y, z) {
     });
     const pillar = new THREE.Mesh(pillarGeo, pillarMat);
     pillar.position.set(x, y + 4, z);
-    pillar.castShadow = true;
-    pillar.receiveShadow = true;
+    pillar.castShadow = false;
+    pillar.receiveShadow = false;
     scene.add(pillar);
 
     // Capital
@@ -448,7 +448,7 @@ function createCorridorScene() {
     const leftWall = new THREE.Mesh(leftWallGeo, wallMat);
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-corridorWidth / 2, 3, 0);
-    leftWall.receiveShadow = true;
+    leftWall.receiveShadow = false;
     leftWall.userData.clickable = true;
     leftWall.userData.type = 'wall';
     leftWall.userData.side = 'left';
@@ -460,7 +460,7 @@ function createCorridorScene() {
     const rightWall = new THREE.Mesh(leftWallGeo, wallMat);
     rightWall.rotation.y = -Math.PI / 2;
     rightWall.position.set(corridorWidth / 2, 3, 0);
-    rightWall.receiveShadow = true;
+    rightWall.receiveShadow = false;
     rightWall.userData.clickable = true;
     rightWall.userData.type = 'wall';
     rightWall.userData.side = 'right';
@@ -475,7 +475,7 @@ function createCorridorScene() {
     const frontWallGeo = new THREE.PlaneGeometry(corridorWidth, 6);
     const frontWall = new THREE.Mesh(frontWallGeo, wallMat);
     frontWall.position.set(0, 3, corridorLength / 2);
-    frontWall.receiveShadow = true;
+    frontWall.receiveShadow = false;
     frontWall.visible = false;
     corridorGroup.push(frontWall);
     scene.add(frontWall);
@@ -484,7 +484,7 @@ function createCorridorScene() {
     const backWall = new THREE.Mesh(frontWallGeo, wallMat);
     backWall.rotation.y = Math.PI;
     backWall.position.set(0, 3, -corridorLength / 2);
-    backWall.receiveShadow = true;
+    backWall.receiveShadow = false;
     backWall.visible = false;
     corridorGroup.push(backWall);
     scene.add(backWall);
@@ -755,24 +755,24 @@ function createCorridorSculpture() {
     });
     const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
     pedestal.position.y = 0.15;
-    pedestal.castShadow = true;
-    pedestal.receiveShadow = true;
+    pedestal.castShadow = false;
+    pedestal.receiveShadow = false;
     sculptureGroup.add(pedestal);
 
     // Pedestal column
     const columnGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 16);
     const column = new THREE.Mesh(columnGeo, pedestalMat);
     column.position.y = 0.9;
-    column.castShadow = true;
-    column.receiveShadow = true;
+    column.castShadow = false;
+    column.receiveShadow = false;
     sculptureGroup.add(column);
 
     // Top platform
     const platformGeo = new THREE.CylinderGeometry(0.6, 0.5, 0.15, 16);
     const platform = new THREE.Mesh(platformGeo, pedestalMat);
     platform.position.y = 1.575;
-    platform.castShadow = true;
-    platform.receiveShadow = true;
+    platform.castShadow = false;
+    platform.receiveShadow = false;
     sculptureGroup.add(platform);
 
     // Sculpture - abstract form (combination of spheres and cylinders)
@@ -786,14 +786,14 @@ function createCorridorSculpture() {
     const bodyGeo = new THREE.CylinderGeometry(0.15, 0.18, 0.8, 12);
     const body = new THREE.Mesh(bodyGeo, sculptureMat);
     body.position.y = 2.05;
-    body.castShadow = true;
+    body.castShadow = false;
     sculptureGroup.add(body);
 
     // Head - sphere
     const headGeo = new THREE.SphereGeometry(0.2, 16, 16);
     const head = new THREE.Mesh(headGeo, sculptureMat);
     head.position.y = 2.6;
-    head.castShadow = true;
+    head.castShadow = false;
     sculptureGroup.add(head);
 
     // Left arm - cylinder at angle
@@ -801,14 +801,14 @@ function createCorridorSculpture() {
     const leftArm = new THREE.Mesh(armGeo, sculptureMat);
     leftArm.position.set(-0.25, 2.1, 0);
     leftArm.rotation.z = Math.PI / 4;
-    leftArm.castShadow = true;
+    leftArm.castShadow = false;
     sculptureGroup.add(leftArm);
 
     // Right arm
     const rightArm = new THREE.Mesh(armGeo, sculptureMat);
     rightArm.position.set(0.25, 2.1, 0);
     rightArm.rotation.z = -Math.PI / 4;
-    rightArm.castShadow = true;
+    rightArm.castShadow = false;
     sculptureGroup.add(rightArm);
 
     // Spotlight on sculpture
