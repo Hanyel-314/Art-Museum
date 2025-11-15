@@ -1521,33 +1521,8 @@
                     }
                 );
 
-            } else if (currentView === 'CORRIDOR') {
-                isAnimating = true;
-                corridorGroup.forEach(obj => obj.visible = false);
-                entranceDoor.visible = true;
-
-                leftDoorPanel.rotation.y = 0;
-                rightDoorPanel.rotation.y = 0;
-
-                scene.background = new THREE.Color(0xE8DCC8);
-                scene.fog = new THREE.Fog(0xE8DCC8, 10, 50);
-
-                animateCamera(
-                    camera.position.clone(),
-                    new THREE.Vector3(0, 1.7, 8),
-                    camera.rotation.clone(),
-                    new THREE.Euler(0, 0, 0),
-                    1200,
-                    () => {
-                        currentView = 'ENTRANCE';
-                        isAnimating = false;
-                        backBtn.classList.add('hidden');
-                        tooltip.classList.remove('hidden');
-                        wallHintLeft.classList.add('hidden');
-                        wallHintRight.classList.add('hidden');
-                    }
-                );
             }
+            // Removed: No exit from corridor - user stays in museum
         }
 
         // ============================================
