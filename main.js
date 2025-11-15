@@ -388,17 +388,17 @@ function createCorridorScene() {
     const corridorLength = 20; // Shorter, enclosed space
     const corridorWidth = 12; // Wider corridor
 
-    // Glossy marble floor with reflective properties
+    // Glossy marble floor with simple material (no reflection to prevent flickering)
     const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
     const floorMat = new THREE.MeshStandardMaterial({
         color: 0xF8F4E8, // Cream marble
-        roughness: 0.1, // Very glossy
-        metalness: 0.4,
-        envMapIntensity: 1.0
+        roughness: 0.9, // Matte finish to prevent flickering
+        metalness: 0 // No metallic properties
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = false; // Disable shadow reception to prevent flickering
+    floor.castShadow = false; // Also disable casting
     floor.visible = false;
     corridorGroup.push(floor);
     scene.add(floor);
@@ -431,7 +431,7 @@ function createCorridorScene() {
         const chandLight = new THREE.PointLight(warmLightColor, 0.8, 15);
         chandLight.position.set(0, 5.2, i);
         chandLight.visible = false;
-        chandLight.castShadow = true;
+        chandLight.castShadow = false; // Disable shadow to reduce artifacts
         corridorGroup.push(chandLight);
         scene.add(chandLight);
     }
@@ -816,7 +816,7 @@ function createCorridorSculpture() {
     sculptureLight.position.set(0, 4.2, 4); // Adjusted for new sculpture position
     sculptureLight.target = sculptureGroup;
     sculptureLight.visible = false;
-    sculptureLight.castShadow = true;
+    sculptureLight.castShadow = false; // Disable shadow to reduce artifacts
     corridorGroup.push(sculptureLight);
     scene.add(sculptureLight);
 

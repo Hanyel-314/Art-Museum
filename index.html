@@ -767,19 +767,19 @@
                 side: THREE.DoubleSide
             });
 
-            // Floor - extends from z=0 to z=-30
+            // Floor - extends from z=0 to z=-30 (simple material to prevent flickering)
             const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
             const floorMat = new THREE.MeshStandardMaterial({
                 color: 0xF8F4E8,
-                roughness: 0.1,
-                metalness: 0.4,
-                envMapIntensity: 1.0,
+                roughness: 0.9, // Matte finish to prevent flickering
+                metalness: 0, // No metallic properties
                 side: THREE.DoubleSide
             });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             floor.position.set(0, 0, -corridorLength / 2); // Center at z=-15
             floor.receiveShadow = false; // No shadows on floor
+            floor.castShadow = false; // Also disable casting
             floor.visible = false;
             corridorGroup.push(floor);
             scene.add(floor);
@@ -851,7 +851,7 @@
                 const chandLight = new THREE.PointLight(warmLightColor, 0.8, 15);
                 chandLight.position.set(0, 4.5, i);
                 chandLight.visible = false;
-                chandLight.castShadow = true;
+                chandLight.castShadow = false; // Disable shadow to reduce artifacts
                 corridorGroup.push(chandLight);
                 scene.add(chandLight);
             }
@@ -1170,7 +1170,7 @@
             sculptureLight.position.set(0, 4.2, 9); // Adjusted for sculpture at z=13
             sculptureLight.target = sculptureGroup;
             sculptureLight.visible = false;
-            sculptureLight.castShadow = true;
+            sculptureLight.castShadow = false; // Disable shadow to reduce artifacts
             corridorGroup.push(sculptureLight);
             scene.add(sculptureLight);
 
