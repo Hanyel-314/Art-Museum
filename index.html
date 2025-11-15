@@ -324,6 +324,187 @@
                 padding: 1rem 1.5rem;
             }
         }
+
+        /* ============================================
+           FULL-SCREEN DETAIL OVERLAY (PURE BLACK 2D)
+           ============================================ */
+        .detail-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000000;
+            z-index: 2000;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-overlay.active {
+            display: flex;
+        }
+
+        .detail-content {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            gap: 4rem;
+            padding: 2rem;
+        }
+
+        /* Left Side: Framed Painting */
+        .detail-painting-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 600px;
+        }
+
+        .painting-frame {
+            position: relative;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #D4AF37 0%, #F4E5C2 50%, #D4AF37 100%);
+            border-radius: 4px;
+            box-shadow:
+                0 0 0 3px #8B7355,
+                0 0 30px rgba(212, 175, 55, 0.5),
+                inset 0 0 20px rgba(139, 115, 85, 0.3);
+        }
+
+        .painting-canvas {
+            width: 400px;
+            height: 400px;
+            border: 2px solid #8B7355;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Right Side: Info Panel */
+        .detail-info-panel {
+            position: relative;
+            flex: 0 0 450px;
+            max-width: 450px;
+            background: linear-gradient(135deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.95));
+            border: 2px solid rgba(212, 175, 55, 0.6);
+            border-radius: 12px;
+            padding: 2.5rem;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow:
+                0 0 40px rgba(212, 175, 55, 0.4),
+                0 10px 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .detail-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 2.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s;
+            line-height: 1;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-close-btn:hover {
+            opacity: 1;
+            color: #FFD700;
+            transform: scale(1.1);
+        }
+
+        .detail-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #FFD700;
+            font-weight: 600;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            line-height: 1.2;
+            padding-right: 2rem;
+        }
+
+        .detail-artist {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+            opacity: 0.95;
+            color: #E5E7EB;
+        }
+
+        .detail-year,
+        .detail-medium {
+            font-size: 1rem;
+            opacity: 0.75;
+            margin-bottom: 0.4rem;
+            color: #D1D5DB;
+        }
+
+        .detail-description {
+            margin-top: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.05rem;
+            opacity: 0.9;
+            color: #E5E7EB;
+        }
+
+        .detail-interaction-hint {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .detail-interaction-hint p {
+            font-size: 0.9rem;
+            opacity: 0.6;
+            margin: 0.3rem 0;
+            color: #D1D5DB;
+        }
+
+        /* Responsive for Detail Overlay */
+        @media (max-width: 1024px) {
+            .detail-content {
+                flex-direction: column;
+                gap: 2rem;
+                overflow-y: auto;
+            }
+
+            .detail-painting-container {
+                max-width: 500px;
+            }
+
+            .painting-canvas {
+                width: 350px;
+                height: 350px;
+            }
+
+            .detail-info-panel {
+                flex: 0 0 auto;
+                max-width: 500px;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .painting-canvas {
+                width: 300px;
+                height: 300px;
+            }
+
+            .detail-title {
+                font-size: 2rem;
+            }
+
+            .detail-artist {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -353,7 +534,7 @@
             <span class="back-arrow">←</span> <span id="back-text">Back</span>
         </button>
 
-        <!-- Artwork Info Panel -->
+        <!-- Artwork Info Panel (OLD - keeping for compatibility) -->
         <div id="artwork-info" class="info-panel hidden">
             <button class="close-btn" id="close-info">×</button>
             <h2 id="artwork-title"></h2>
@@ -373,6 +554,31 @@
         </div>
         <div id="wall-hint-right" class="wall-hint hidden">
             View Right Gallery →
+        </div>
+    </div>
+
+    <!-- Full-Screen Detail Overlay (Pure Black 2D View) -->
+    <div id="detail-overlay" class="detail-overlay">
+        <div class="detail-content">
+            <!-- Left Side: Framed Painting -->
+            <div class="detail-painting-container">
+                <div class="painting-frame">
+                    <div id="detail-painting" class="painting-canvas"></div>
+                </div>
+            </div>
+
+            <!-- Right Side: Info Panel -->
+            <div class="detail-info-panel">
+                <button class="detail-close-btn" id="detail-close">×</button>
+                <h2 id="detail-title" class="detail-title"></h2>
+                <p id="detail-artist" class="detail-artist"></p>
+                <p id="detail-year" class="detail-year"></p>
+                <p id="detail-medium" class="detail-medium"></p>
+                <p id="detail-description" class="detail-description"></p>
+                <div class="detail-interaction-hint">
+                    <p>Press ESC or click × to return to gallery</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -417,6 +623,16 @@
         const infoPanel = document.getElementById('artwork-info');
         const wallHintLeft = document.getElementById('wall-hint-left');
         const wallHintRight = document.getElementById('wall-hint-right');
+
+        // Detail Overlay Elements
+        const detailOverlay = document.getElementById('detail-overlay');
+        const detailPainting = document.getElementById('detail-painting');
+        const detailCloseBtn = document.getElementById('detail-close');
+        const detailTitle = document.getElementById('detail-title');
+        const detailArtist = document.getElementById('detail-artist');
+        const detailYear = document.getElementById('detail-year');
+        const detailMedium = document.getElementById('detail-medium');
+        const detailDescription = document.getElementById('detail-description');
 
         // ============================================
         // ARTWORK DATA
@@ -551,6 +767,14 @@
             canvas.addEventListener('mouseleave', onMouseLeave);
             canvas.addEventListener('wheel', onWheel, { passive: false });
             backBtn.addEventListener('click', goBack);
+
+            // Detail overlay close handlers
+            detailCloseBtn.addEventListener('click', closeDetailOverlay);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && currentView === 'DETAIL') {
+                    closeDetailOverlay();
+                }
+            });
 
             console.log('✅ Event listeners attached');
 
@@ -1278,190 +1502,75 @@
         }
 
         function viewArtworkDetail(artworkData) {
-            if (isAnimating) return;
-            isAnimating = true;
             console.log(`🖼️ Viewing: ${artworkData.title}`);
 
+            // Hide ALL 3D gallery geometry
             corridorGroup.forEach(obj => obj.visible = false);
+            if (entranceDoor) entranceDoor.visible = false;
 
-            scene.background = new THREE.Color(0x1C1C1C);
-            scene.fog = new THREE.Fog(0x1C1C1C, 8, 15);
+            // Set renderer background to pure black
+            renderer.setClearColor(0x000000, 1);
+            scene.background = new THREE.Color(0x000000);
+            scene.fog = null;
 
-            // Create detailed 3D artwork
-            detailArtwork = new THREE.Group();
-            detailArtwork.position.set(0, 1.7, 0);
+            // Hide canvas (we'll use the 2D overlay instead)
+            renderer.domElement.style.display = 'none';
 
-            const size = 3.5;
-            const canvasDepth = 0.12;
-
-            // Front canvas
-            const frontGeo = new THREE.PlaneGeometry(size, size);
-            const frontMat = new THREE.MeshStandardMaterial({
-                color: artworkData.color,
-                roughness: 0.75,
-                metalness: 0
-            });
-            const front = new THREE.Mesh(frontGeo, frontMat);
-            front.position.z = canvasDepth / 2;
-            detailArtwork.add(front);
-
-            // Canvas edges
-            const edgeColor = 0xE8E0D0;
-            const edgeMat = new THREE.MeshStandardMaterial({
-                color: edgeColor,
-                roughness: 0.9
-            });
-
-            const topEdge = new THREE.Mesh(
-                new THREE.BoxGeometry(size, 0.02, canvasDepth),
-                edgeMat
-            );
-            topEdge.position.y = size / 2;
-            detailArtwork.add(topEdge);
-
-            const bottomEdge = new THREE.Mesh(
-                new THREE.BoxGeometry(size, 0.02, canvasDepth),
-                edgeMat
-            );
-            bottomEdge.position.y = -size / 2;
-            detailArtwork.add(bottomEdge);
-
-            const leftEdge = new THREE.Mesh(
-                new THREE.BoxGeometry(0.02, size, canvasDepth),
-                edgeMat
-            );
-            leftEdge.position.x = -size / 2;
-            detailArtwork.add(leftEdge);
-
-            const rightEdge = new THREE.Mesh(
-                new THREE.BoxGeometry(0.02, size, canvasDepth),
-                edgeMat
-            );
-            rightEdge.position.x = size / 2;
-            detailArtwork.add(rightEdge);
-
-            // Back of canvas
-            const backGeo = new THREE.PlaneGeometry(size - 0.15, size - 0.15);
-            const backMat = new THREE.MeshStandardMaterial({
-                color: 0xC8B896,
-                roughness: 0.95
-            });
-            const back = new THREE.Mesh(backGeo, backMat);
-            back.position.z = -canvasDepth / 2;
-            back.rotation.y = Math.PI;
-            detailArtwork.add(back);
-
-            // Support bars
-            const barMat = new THREE.MeshStandardMaterial({
-                color: 0x5D4E37,
-                roughness: 0.85
-            });
-
-            const bar1 = new THREE.Mesh(
-                new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
-                barMat
-            );
-            bar1.position.set(0, size / 3, -canvasDepth / 2 - 0.03);
-            detailArtwork.add(bar1);
-
-            const bar2 = new THREE.Mesh(
-                new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
-                barMat
-            );
-            bar2.position.set(0, -size / 3, -canvasDepth / 2 - 0.03);
-            detailArtwork.add(bar2);
-
-            const bar3 = new THREE.Mesh(
-                new THREE.BoxGeometry(0.12, size - 0.5, 0.05),
-                barMat
-            );
-            bar3.position.set(0, 0, -canvasDepth / 2 - 0.03);
-            detailArtwork.add(bar3);
-
-            // Frame
-            const frameMat = new THREE.MeshStandardMaterial({
-                color: 0xD4AF37,
-                roughness: 0.3,
-                metalness: 0.8
-            });
-
-            const frameThick = 0.2;
-            const frameDepth = canvasDepth + 0.15;
-
-            const topFrame = new THREE.Mesh(
-                new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
-                frameMat
-            );
-            topFrame.position.y = size / 2 + frameThick / 2;
-            detailArtwork.add(topFrame);
-
-            const bottomFrame = new THREE.Mesh(
-                new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
-                frameMat
-            );
-            bottomFrame.position.y = -(size / 2 + frameThick / 2);
-            detailArtwork.add(bottomFrame);
-
-            const leftFrame = new THREE.Mesh(
-                new THREE.BoxGeometry(frameThick, size, frameDepth),
-                frameMat
-            );
-            leftFrame.position.x = -(size / 2 + frameThick / 2);
-            detailArtwork.add(leftFrame);
-
-            const rightFrame = new THREE.Mesh(
-                new THREE.BoxGeometry(frameThick, size, frameDepth),
-                frameMat
-            );
-            rightFrame.position.x = size / 2 + frameThick / 2;
-            detailArtwork.add(rightFrame);
-
-            // Glass
-            const glassGeo = new THREE.PlaneGeometry(size + 0.3, size + 0.3);
-            const glassMat = new THREE.MeshStandardMaterial({
-                color: 0xFFFFFF,
-                transparent: true,
-                opacity: 0.04,
-                roughness: 0.02,
-                metalness: 0.3
-            });
-            const glass = new THREE.Mesh(glassGeo, glassMat);
-            glass.position.z = canvasDepth / 2 + 0.08;
-            detailArtwork.add(glass);
-
-            scene.add(detailArtwork);
+            // Store selected painting data
             selectedPainting = artworkData;
 
-            // 3-point lighting
-            detailKeyLight = new THREE.SpotLight(0xFFFFFF, 1.2, 15, Math.PI / 6, 0.4);
-            detailKeyLight.position.set(-4, 4, 6);
-            detailKeyLight.target.position.set(0, 1.7, 0);
-            scene.add(detailKeyLight);
-            scene.add(detailKeyLight.target);
+            // Populate the 2D detail overlay
+            const colorHex = '#' + artworkData.color.toString(16).padStart(6, '0');
+            detailPainting.style.backgroundColor = colorHex;
 
-            detailRimLight = new THREE.PointLight(0xFFF4E0, 0.6, 12);
-            detailRimLight.position.set(3, 2.5, -3);
-            scene.add(detailRimLight);
+            detailTitle.textContent = artworkData.title;
+            detailArtist.textContent = artworkData.artist;
+            detailYear.textContent = artworkData.year;
+            detailMedium.textContent = artworkData.medium;
+            detailDescription.textContent = artworkData.description;
 
-            detailFillLight = new THREE.DirectionalLight(0xFFFFFF, 0.3);
-            detailFillLight.position.set(2, 1, 5);
-            scene.add(detailFillLight);
+            // Show the detail overlay
+            detailOverlay.classList.add('active');
 
-            animateCamera(
-                camera.position.clone(),
-                new THREE.Vector3(0, 1.7, 6),
-                camera.rotation.clone(),
-                new THREE.Euler(0, 0, 0),
-                1000,
-                () => {
-                    currentView = 'DETAIL';
-                    isAnimating = false;
-                    backText.textContent = 'Back to Gallery';
-                    showArtworkInfo(artworkData);
-                    renderer.domElement.style.cursor = 'grab';
-                    console.log('✅ Detail view ready - 360° rotation enabled');
-                }
-            );
+            // Update state
+            currentView = 'DETAIL';
+            console.log('✅ Detail view ready - pure black 2D overlay');
+        }
+
+        function closeDetailOverlay() {
+            if (currentView !== 'DETAIL') return;
+            console.log('⬅️ Closing detail overlay...');
+
+            // Hide the detail overlay
+            detailOverlay.classList.remove('active');
+
+            // Show canvas again
+            renderer.domElement.style.display = 'block';
+
+            // Restore gallery scene
+            scene.background = new THREE.Color(0xFAF8F3);
+            scene.fog = new THREE.Fog(0xFAF8F3, 15, 35);
+            renderer.setClearColor(0xFAF8F3, 1);
+
+            // Show corridor objects again
+            corridorGroup.forEach(obj => obj.visible = true);
+
+            // Determine which wall we were viewing and return to it
+            const side = selectedPainting ?
+                (ARTWORKS.left.includes(selectedPainting) ? 'left' : 'right') :
+                'left';
+
+            const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+            const targetPos = new THREE.Vector3(0, 2, -10);
+
+            // Snap camera back to wall view instantly
+            camera.position.copy(targetPos);
+            camera.rotation.set(0, targetAngle, 0);
+
+            currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
+            selectedPainting = null;
+
+            console.log(`✅ Returned to ${side} wall view`);
         }
 
         function goBack() {
@@ -1469,41 +1578,8 @@
             console.log('⬅️ Going back...');
 
             if (currentView === 'DETAIL') {
-                if (detailArtwork) {
-                    scene.remove(detailArtwork);
-                    detailArtwork = null;
-                }
-
-                if (detailKeyLight) scene.remove(detailKeyLight);
-                if (detailRimLight) scene.remove(detailRimLight);
-                if (detailFillLight) scene.remove(detailFillLight);
-                if (detailKeyLight && detailKeyLight.target) scene.remove(detailKeyLight.target);
-                detailKeyLight = detailRimLight = detailFillLight = null;
-
-                scene.background = new THREE.Color(0xFAF8F3);
-                scene.fog = new THREE.Fog(0xFAF8F3, 15, 35);
-                hideArtworkInfo();
-                corridorGroup.forEach(obj => obj.visible = true);
-                renderer.domElement.style.cursor = 'default';
-
-                // Determine which wall we were viewing based on camera rotation
-                const side = Math.abs(camera.rotation.y - Math.PI / 2) < 0.1 ? 'left' : 'right';
-                const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-                const targetPos = new THREE.Vector3(0, 2, -10); // Middle of corridor
-
-                isAnimating = true;
-                animateCamera(
-                    camera.position.clone(),
-                    targetPos,
-                    camera.rotation.clone(),
-                    new THREE.Euler(0, targetAngle, 0),
-                    1000,
-                    () => {
-                        currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
-                        isAnimating = false;
-                        backText.textContent = 'Back to Corridor';
-                    }
-                );
+                // Use the new closeDetailOverlay function
+                closeDetailOverlay();
 
             } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
                 isAnimating = true;
@@ -1595,17 +1671,9 @@
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-            // 360° rotation in detail view
-            if (currentView === 'DETAIL' && isDragging && detailArtwork) {
-                const deltaX = event.clientX - previousMouse.x;
-                const deltaY = event.clientY - previousMouse.y;
-
-                detailArtwork.rotation.y += deltaX * 0.008;
-                detailArtwork.rotation.x += deltaY * 0.005;
-
-                detailArtwork.rotation.x = Math.max(-Math.PI / 6, Math.min(Math.PI / 6, detailArtwork.rotation.x));
-
-                previousMouse = { x: event.clientX, y: event.clientY };
+            // Skip interactions when in detail overlay (pure 2D mode)
+            if (currentView === 'DETAIL') {
+                return;
             }
 
             // Hover detection
@@ -1681,34 +1749,19 @@
         }
 
         function onMouseDown(event) {
-            if (currentView === 'DETAIL') {
-                isDragging = true;
-                previousMouse = { x: event.clientX, y: event.clientY };
-                renderer.domElement.style.cursor = 'grabbing';
-            }
+            // No mouse interactions needed in detail overlay (pure 2D mode)
         }
 
         function onMouseUp(event) {
-            if (currentView === 'DETAIL') {
-                isDragging = false;
-                renderer.domElement.style.cursor = 'grab';
-            }
+            // No mouse interactions needed in detail overlay (pure 2D mode)
         }
 
         function onMouseLeave(event) {
-            if (currentView === 'DETAIL') {
-                isDragging = false;
-                renderer.domElement.style.cursor = 'grab';
-            }
+            // No mouse interactions needed in detail overlay (pure 2D mode)
         }
 
         function onWheel(event) {
-            if (currentView === 'DETAIL') {
-                event.preventDefault();
-
-                const delta = event.deltaY * 0.005;
-                camera.position.z = Math.max(2, Math.min(9, camera.position.z + delta));
-            }
+            // No wheel zoom needed in detail overlay (pure 2D mode)
         }
 
         function onWindowResize() {
