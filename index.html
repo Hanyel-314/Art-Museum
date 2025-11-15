@@ -1469,81 +1469,137 @@
         function viewArtworkDetail(artworkData) {
             console.log(`🖼️ Viewing: ${artworkData.title}`);
 
-            // Hide ALL 3D gallery geometry
-            corridorGroup.forEach(obj => obj.visible = false);
-            if (entranceDoor) entranceDoor.visible = false;
-
-            // Set renderer background to pure black
-            renderer.setClearColor(0x000000, 1);
-            scene.background = new THREE.Color(0x000000);
-            scene.fog = null;
-
-            // Hide canvas (we'll use the 2D overlay instead)
-            renderer.domElement.style.display = 'none';
-
             // Store selected painting data
             selectedPainting = artworkData;
 
-            // Populate the 2D detail overlay
-            const colorHex = '#' + artworkData.color.toString(16).padStart(6, '0');
-            detailPainting.style.backgroundColor = colorHex;
+            // White fade-in transition
+            const whiteFade = document.createElement('div');
+            whiteFade.style.position = 'fixed';
+            whiteFade.style.top = '0';
+            whiteFade.style.left = '0';
+            whiteFade.style.width = '100%';
+            whiteFade.style.height = '100%';
+            whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
+            whiteFade.style.opacity = '0';
+            whiteFade.style.transition = 'opacity 0.6s ease-in';
+            whiteFade.style.zIndex = '1999';
+            whiteFade.style.pointerEvents = 'none';
+            document.body.appendChild(whiteFade);
 
-            detailTitle.textContent = artworkData.title;
-            detailArtist.textContent = artworkData.artist;
-            detailYear.textContent = artworkData.year;
-            detailMedium.textContent = artworkData.medium;
-            detailDescription.textContent = artworkData.description;
+            setTimeout(() => {
+                whiteFade.style.opacity = '1';
+            }, 50);
 
-            // Show the detail overlay
-            detailOverlay.classList.add('active');
+            setTimeout(() => {
+                // Hide ALL 3D gallery geometry
+                corridorGroup.forEach(obj => obj.visible = false);
+                if (entranceDoor) entranceDoor.visible = false;
 
-            // Show back button
-            backBtn.classList.remove('hidden');
-            backText.textContent = 'Back to Gallery';
+                // Set renderer background to pure black
+                renderer.setClearColor(0x000000, 1);
+                scene.background = new THREE.Color(0x000000);
+                scene.fog = null;
 
-            // Update state
-            currentView = 'DETAIL';
-            console.log('✅ Detail view ready - pure black 2D overlay');
+                // Hide canvas (we'll use the 2D overlay instead)
+                renderer.domElement.style.display = 'none';
+
+                // Populate the 2D detail overlay
+                const colorHex = '#' + artworkData.color.toString(16).padStart(6, '0');
+                detailPainting.style.backgroundColor = colorHex;
+
+                detailTitle.textContent = artworkData.title;
+                detailArtist.textContent = artworkData.artist;
+                detailYear.textContent = artworkData.year;
+                detailMedium.textContent = artworkData.medium;
+                detailDescription.textContent = artworkData.description;
+
+                // Show the detail overlay
+                detailOverlay.classList.add('active');
+
+                // Show back button
+                backBtn.classList.remove('hidden');
+                backText.textContent = 'Back to Gallery';
+
+                // Update state
+                currentView = 'DETAIL';
+                console.log('✅ Detail view ready - pure black 2D overlay');
+
+                // Fade out white overlay
+                whiteFade.style.transition = 'opacity 0.6s ease-out';
+                whiteFade.style.opacity = '0';
+
+                setTimeout(() => {
+                    document.body.removeChild(whiteFade);
+                }, 600);
+            }, 600);
         }
 
         function closeDetailOverlay() {
             if (currentView !== 'DETAIL') return;
             console.log('⬅️ Closing detail overlay...');
 
-            // Hide the detail overlay
-            detailOverlay.classList.remove('active');
-
-            // Show canvas again
-            renderer.domElement.style.display = 'block';
-
-            // Restore gallery scene
-            scene.background = new THREE.Color(0xFAF8F3);
-            scene.fog = new THREE.Fog(0xFAF8F3, 15, 35);
-            renderer.setClearColor(0xFAF8F3, 1);
-
-            // Show corridor objects again
-            corridorGroup.forEach(obj => obj.visible = true);
-
             // Determine which wall we were viewing and return to it
             const side = selectedPainting ?
                 (ARTWORKS.left.includes(selectedPainting) ? 'left' : 'right') :
                 'left';
 
-            const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-            const targetPos = new THREE.Vector3(0, 2, -10);
+            // White fade-out transition
+            const whiteFade = document.createElement('div');
+            whiteFade.style.position = 'fixed';
+            whiteFade.style.top = '0';
+            whiteFade.style.left = '0';
+            whiteFade.style.width = '100%';
+            whiteFade.style.height = '100%';
+            whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
+            whiteFade.style.opacity = '0';
+            whiteFade.style.transition = 'opacity 0.6s ease-in';
+            whiteFade.style.zIndex = '2999';
+            whiteFade.style.pointerEvents = 'none';
+            document.body.appendChild(whiteFade);
 
-            // Snap camera back to wall view instantly
-            camera.position.copy(targetPos);
-            camera.rotation.set(0, targetAngle, 0);
+            setTimeout(() => {
+                whiteFade.style.opacity = '1';
+            }, 50);
 
-            currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
-            selectedPainting = null;
+            setTimeout(() => {
+                // Hide the detail overlay
+                detailOverlay.classList.remove('active');
 
-            // Keep back button visible and update text
-            backBtn.classList.remove('hidden');
-            backText.textContent = 'Back to Corridor';
+                // Show canvas again
+                renderer.domElement.style.display = 'block';
 
-            console.log(`✅ Returned to ${side} wall view`);
+                // Restore gallery scene
+                scene.background = new THREE.Color(0xFAF8F3);
+                scene.fog = new THREE.Fog(0xFAF8F3, 15, 35);
+                renderer.setClearColor(0xFAF8F3, 1);
+
+                // Show corridor objects again
+                corridorGroup.forEach(obj => obj.visible = true);
+
+                const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+                const targetPos = new THREE.Vector3(0, 2, -10);
+
+                // Snap camera back to wall view instantly
+                camera.position.copy(targetPos);
+                camera.rotation.set(0, targetAngle, 0);
+
+                currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
+                selectedPainting = null;
+
+                // Keep back button visible and update text
+                backBtn.classList.remove('hidden');
+                backText.textContent = 'Back to Corridor';
+
+                console.log(`✅ Returned to ${side} wall view`);
+
+                // Fade out white overlay
+                whiteFade.style.transition = 'opacity 0.6s ease-out';
+                whiteFade.style.opacity = '0';
+
+                setTimeout(() => {
+                    document.body.removeChild(whiteFade);
+                }, 600);
+            }, 600);
         }
 
         function goBack() {
