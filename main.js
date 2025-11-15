@@ -193,10 +193,10 @@ function init() {
 function createEntranceScene() {
     console.log('Creating entrance scene...');
 
-    // Uniform matte ground - no texture or pattern
+    // Entrance ground - stone texture (different from corridor)
     const groundGeo = new THREE.PlaneGeometry(30, 30);
     const groundMat = new THREE.MeshStandardMaterial({
-        color: 0xE8E0D0, // Uniform light beige
+        color: 0xC8B8A0, // Stone color for entrance area
         roughness: 1.0, // Completely matte - no reflections
         metalness: 0 // No metallic properties
     });
