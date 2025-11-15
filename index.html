@@ -755,19 +755,19 @@
         function createCorridorScene() {
             console.log('Creating baroque corridor...');
 
-            const corridorLength = 40; // Long corridor depth
-            const corridorWidth = 20; // Wide enough for comfort
-            const corridorHeight = 8; // Tall ceiling
+            const corridorLength = 30; // Corridor extends 30m in -Z direction
+            const corridorWidth = 12; // Width between left and right walls
+            const corridorHeight = 6; // Ceiling height
 
-            // FULLY CLOSED ROOM GEOMETRY
+            // CLEAN OPEN CORRIDOR - no blocking front wall
             const wallMat = new THREE.MeshStandardMaterial({
                 color: 0xE8DCC0,
                 roughness: 0.8,
                 metalness: 0.05,
-                side: THREE.DoubleSide // Ensure both sides render
+                side: THREE.DoubleSide
             });
 
-            // Floor - large plane covering entire bottom
+            // Floor - extends from z=0 to z=-30
             const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
             const floorMat = new THREE.MeshStandardMaterial({
                 color: 0xF8F4E8,
@@ -778,13 +778,13 @@
             });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
-            floor.position.y = 0;
+            floor.position.set(0, 0, -corridorLength / 2); // Center at z=-15
             floor.receiveShadow = true;
             floor.visible = false;
             corridorGroup.push(floor);
             scene.add(floor);
 
-            // Ceiling - large plane covering entire top
+            // Ceiling - same dimensions and position as floor
             const ceilingGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
             const ceilingMat = new THREE.MeshStandardMaterial({
                 color: 0xE8D4B8,
@@ -794,16 +794,16 @@
             });
             const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
             ceiling.rotation.x = Math.PI / 2;
-            ceiling.position.y = corridorHeight;
+            ceiling.position.set(0, corridorHeight, -corridorLength / 2); // Center at z=-15
             ceiling.visible = false;
             corridorGroup.push(ceiling);
             scene.add(ceiling);
 
-            // Left wall (along X axis, normal pointing right)
+            // Left wall - extends from z=0 to z=-30
             const leftWallGeo = new THREE.PlaneGeometry(corridorLength, corridorHeight);
             const leftWall = new THREE.Mesh(leftWallGeo, wallMat);
             leftWall.rotation.y = Math.PI / 2;
-            leftWall.position.set(-corridorWidth / 2, corridorHeight / 2, 0);
+            leftWall.position.set(-corridorWidth / 2, corridorHeight / 2, -corridorLength / 2);
             leftWall.receiveShadow = true;
             leftWall.userData.clickable = true;
             leftWall.userData.type = 'wall';
@@ -812,11 +812,11 @@
             corridorGroup.push(leftWall);
             scene.add(leftWall);
 
-            // Right wall (along X axis, normal pointing left)
+            // Right wall - extends from z=0 to z=-30
             const rightWallGeo = new THREE.PlaneGeometry(corridorLength, corridorHeight);
             const rightWall = new THREE.Mesh(rightWallGeo, wallMat);
             rightWall.rotation.y = -Math.PI / 2;
-            rightWall.position.set(corridorWidth / 2, corridorHeight / 2, 0);
+            rightWall.position.set(corridorWidth / 2, corridorHeight / 2, -corridorLength / 2);
             rightWall.receiveShadow = true;
             rightWall.userData.clickable = true;
             rightWall.userData.type = 'wall';
@@ -825,38 +825,31 @@
             corridorGroup.push(rightWall);
             scene.add(rightWall);
 
-            // Back wall (at far end of corridor)
+            // Back wall - at far end (z = -30)
             const backWallGeo = new THREE.PlaneGeometry(corridorWidth, corridorHeight);
             const backWall = new THREE.Mesh(backWallGeo, wallMat);
             backWall.rotation.y = Math.PI;
-            backWall.position.set(0, corridorHeight / 2, -corridorLength / 2);
+            backWall.position.set(0, corridorHeight / 2, -corridorLength);
             backWall.receiveShadow = true;
             backWall.visible = false;
             corridorGroup.push(backWall);
             scene.add(backWall);
 
-            // Front wall (at near end of corridor)
-            const frontWallGeo = new THREE.PlaneGeometry(corridorWidth, corridorHeight);
-            const frontWall = new THREE.Mesh(frontWallGeo, wallMat);
-            frontWall.position.set(0, corridorHeight / 2, corridorLength / 2);
-            frontWall.receiveShadow = true;
-            frontWall.visible = false;
-            corridorGroup.push(frontWall);
-            scene.add(frontWall);
+            // NO FRONT WALL - leave entrance open for clear view down corridor
 
             // Ceiling frescoes
             createCeilingFrescoes(corridorLength);
 
             // Crystal chandeliers - distributed along corridor
-            for (let i = -8; i <= 8; i += 8) {
-                createChandelier(0, 5.5, i);
+            for (let i = -5; i >= -25; i -= 10) {
+                createChandelier(0, 4.5, i);
             }
 
             // Chandelier lighting
             const warmLightColor = 0xFFE8C0;
-            for (let i = -12; i <= 12; i += 6) {
+            for (let i = -5; i >= -25; i -= 10) {
                 const chandLight = new THREE.PointLight(warmLightColor, 0.8, 15);
-                chandLight.position.set(0, 5.2, i);
+                chandLight.position.set(0, 4.5, i);
                 chandLight.visible = false;
                 chandLight.castShadow = true;
                 corridorGroup.push(chandLight);
@@ -867,22 +860,21 @@
             createGoldMoldings(corridorLength, corridorWidth);
 
             // Paintings on walls - positioned IN FRONT of walls
-            // Left wall is at x = -10, paintings at x = -10 + 0.15 = -9.85
-            // Right wall is at x = +10, paintings at x = +10 - 0.15 = +9.85
+            // Paintings at z = -5, -10, -15 (evenly spaced, clearly visible)
             createWallPaintings('left', -corridorWidth / 2 + 0.15, leftWallPaintings);
             createWallPaintings('right', corridorWidth / 2 - 0.15, rightWallPaintings);
 
-            // Sculpture at vanishing point
+            // Sculpture at far end
             createCorridorSculpture();
 
-            console.log('✅ Baroque corridor created');
+            console.log('✅ Clean open corridor created');
         }
 
         function createCeilingFrescoes(corridorLength) {
             const frescoPanels = [
-                { color: 0xD4A574, z: -8 },
-                { color: 0xB8C4D8, z: 0 },
-                { color: 0xE8C4A8, z: 8 }
+                { color: 0xD4A574, z: -5 },
+                { color: 0xB8C4D8, z: -15 },
+                { color: 0xE8C4A8, z: -25 }
             ];
 
             frescoPanels.forEach(panel => {
@@ -990,15 +982,15 @@
             const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
 
             // Evenly space 3 paintings along the wall
-            // Corridor is 40m long (z from -20 to +20)
-            // Place paintings at z = -10, 0, +10 (evenly spaced, avoid walls)
-            const paintingZPositions = [-10, 0, 10];
+            // Corridor extends from z=0 to z=-30
+            // Place paintings at z = -5, -10, -15 (evenly spaced, clearly visible)
+            const paintingZPositions = [-5, -10, -15];
 
             artworks.forEach((artwork, i) => {
                 const zPos = paintingZPositions[i];
 
                 const paintingGroup = new THREE.Group();
-                paintingGroup.position.set(xPos, 3, zPos); // Height 3 (middle of 8-tall wall)
+                paintingGroup.position.set(xPos, 2.5, zPos); // Height 2.5 (middle of 6-tall wall)
                 paintingGroup.rotation.y = rotation;
                 paintingGroup.visible = false;
                 paintingGroup.userData.clickable = true;
@@ -1103,7 +1095,7 @@
 
         function createCorridorSculpture() {
             const sculptureGroup = new THREE.Group();
-            sculptureGroup.position.set(0, 0, 18); // At front end of corridor
+            sculptureGroup.position.set(0, 0, -28); // At far end of corridor
             sculptureGroup.visible = false;
 
             const pedestalGeo = new THREE.CylinderGeometry(0.6, 0.7, 0.3, 16);
@@ -1230,12 +1222,12 @@
             setTimeout(() => {
                 entranceDoor.visible = false;
                 scene.background = new THREE.Color(0xFAF8F3);
-                scene.fog = new THREE.Fog(0xFAF8F3, 25, 45); // Adjusted for 40m corridor
+                scene.fog = new THREE.Fog(0xFAF8F3, 15, 35); // Adjusted for 30m corridor
                 corridorGroup.forEach(obj => obj.visible = true);
 
-                camera.position.set(0, 2, -15); // Inside room, near back wall
+                camera.position.set(0, 1.7, -2); // Near entrance, looking down corridor
                 camera.rotation.set(0, 0, 0);
-                camera.lookAt(0, 3, 0); // Look toward center
+                camera.lookAt(0, 2, -15); // Look toward far end of corridor
             }, 800);
 
             setTimeout(() => {
@@ -1263,10 +1255,11 @@
             wallHintLeft.classList.add('hidden');
             wallHintRight.classList.add('hidden');
 
-            // Position camera in center of room, facing the wall
-            // Paintings are at z = -10, 0, 10, so center is at z = 0
+            // Position camera in middle of corridor, facing the wall
+            // Paintings are at z = -5, -10, -15, so center at z = -10
+            // Camera stays in center of room width, clear view of wall
             const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-            const targetPos = new THREE.Vector3(0, 3, 0); // Center of room, at painting height
+            const targetPos = new THREE.Vector3(0, 2, -10); // Middle of corridor, painting height
 
             animateCamera(
                 camera.position.clone(),
@@ -1487,7 +1480,7 @@
                 detailKeyLight = detailRimLight = detailFillLight = null;
 
                 scene.background = new THREE.Color(0xFAF8F3);
-                scene.fog = new THREE.Fog(0xFAF8F3, 25, 45);
+                scene.fog = new THREE.Fog(0xFAF8F3, 15, 35);
                 hideArtworkInfo();
                 corridorGroup.forEach(obj => obj.visible = true);
                 renderer.domElement.style.cursor = 'default';
@@ -1495,7 +1488,7 @@
                 // Determine which wall we were viewing based on camera rotation
                 const side = Math.abs(camera.rotation.y - Math.PI / 2) < 0.1 ? 'left' : 'right';
                 const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-                const targetPos = new THREE.Vector3(0, 3, 0); // Center of room
+                const targetPos = new THREE.Vector3(0, 2, -10); // Middle of corridor
 
                 isAnimating = true;
                 animateCamera(
@@ -1515,7 +1508,7 @@
                 isAnimating = true;
                 animateCamera(
                     camera.position.clone(),
-                    new THREE.Vector3(0, 2, -15), // Return to corridor starting position
+                    new THREE.Vector3(0, 1.7, -2), // Return to entrance position
                     camera.rotation.clone(),
                     new THREE.Euler(0, 0, 0),
                     800,
@@ -1525,7 +1518,7 @@
                         backText.textContent = 'Exit Museum';
                         wallHintLeft.classList.remove('hidden');
                         wallHintRight.classList.remove('hidden');
-                        camera.lookAt(0, 3, 0); // Look toward center
+                        camera.lookAt(0, 2, -15); // Look down corridor
                     }
                 );
 
