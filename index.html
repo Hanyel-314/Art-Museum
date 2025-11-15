@@ -1318,39 +1318,32 @@
             setTimeout(() => {
                 corridorGroup.forEach(obj => obj.visible = false);
 
-                scene.background = new THREE.Color(0x000000); // Completely black space
-                scene.fog = new THREE.Fog(0x000000, 8, 15);
+                // Pure black background - no fog, no depth effects
+                scene.background = new THREE.Color(0x000000);
+                scene.fog = null; // Remove all fog effects
 
                 // Create detailed 3D artwork - positioned on the LEFT side
                 detailArtwork = new THREE.Group();
                 detailArtwork.position.set(-2.5, 1.7, 0); // Move to left side
 
                 const size = 3.5;
-                const canvasDepth = 0.12;
 
-            // Front canvas (painted surface) - ONLY front, no back or edges
+            // Front canvas (painted surface) - using BasicMaterial for pure color
             const frontGeo = new THREE.PlaneGeometry(size, size);
-            const frontMat = new THREE.MeshStandardMaterial({
-                color: artworkData.color,
-                roughness: 0.75,
-                metalness: 0,
-                side: THREE.FrontSide // Only front side visible
+            const frontMat = new THREE.MeshBasicMaterial({
+                color: artworkData.color // Pure color, unaffected by lighting
             });
             const front = new THREE.Mesh(frontGeo, frontMat);
-            front.position.z = 0; // Flat against the frame
+            front.position.z = 0;
             detailArtwork.add(front);
 
-            // Removed: Canvas edges, back, and support bars - only showing front
-
-            // Ornate frame (gold colored)
-            const frameMat = new THREE.MeshStandardMaterial({
-                color: 0xD4AF37, // Gold frame
-                roughness: 0.3,
-                metalness: 0.8
+            // Simple frame - using BasicMaterial for pure gold color
+            const frameMat = new THREE.MeshBasicMaterial({
+                color: 0xD4AF37 // Pure gold color
             });
 
             const frameThick = 0.2;
-            const frameDepth = 0.15; // Thinner frame for flat presentation
+            const frameDepth = 0.15;
 
             const topFrame = new THREE.Mesh(
                 new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
@@ -1380,17 +1373,12 @@
             rightFrame.position.x = size / 2 + frameThick / 2;
             detailArtwork.add(rightFrame);
 
-            // Removed: Glass - keeping it minimal
-
                 scene.add(detailArtwork);
                 selectedPainting = artworkData;
 
-                // Simple minimal lighting - single soft light from front
-                detailKeyLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
-                detailKeyLight.position.set(0, 2, 5);
+                // Minimal ambient light - just enough to see the painting
+                detailKeyLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
                 scene.add(detailKeyLight);
-
-                // Removed: Complex 3-point lighting - keeping it simple and minimal
 
                 // Set camera to viewing position
                 camera.position.set(0, 1.7, 6);
