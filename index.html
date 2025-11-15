@@ -779,7 +779,7 @@
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             floor.position.set(0, 0, -corridorLength / 2); // Center at z=-15
-            floor.receiveShadow = true;
+            floor.receiveShadow = false; // No shadows on floor
             floor.visible = false;
             corridorGroup.push(floor);
             scene.add(floor);
@@ -1239,8 +1239,7 @@
                 document.body.removeChild(whiteFade);
                 currentView = 'CORRIDOR';
                 isAnimating = false;
-                backBtn.classList.remove('hidden');
-                backText.textContent = 'Exit Museum';
+                backBtn.classList.add('hidden'); // Hide exit button
                 wallHintLeft.classList.remove('hidden');
                 wallHintRight.classList.remove('hidden');
                 console.log('✅ Inside corridor');
@@ -1515,7 +1514,7 @@
                     () => {
                         currentView = 'CORRIDOR';
                         isAnimating = false;
-                        backText.textContent = 'Exit Museum';
+                        backBtn.classList.add('hidden'); // Hide exit button
                         wallHintLeft.classList.remove('hidden');
                         wallHintRight.classList.remove('hidden');
                         camera.lookAt(0, 2, -15); // Look down corridor
