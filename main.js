@@ -111,7 +111,7 @@ function init() {
 
     // Camera setup
     camera = new THREE.PerspectiveCamera(
-        65,
+        80,
         window.innerWidth / window.innerHeight,
         0.1,
         100
@@ -821,7 +821,7 @@ function createWallPaintings(side, xPos, storageArray) {
     const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
 
     artworks.forEach((artwork, i) => {
-        const zPos = -8 + (i * 8); // Spacing: -8, 0, 8
+        const zPos = -6 + (i * 6); // Spacing: -6, 0, 6 (better for 40m corridor)
 
         const paintingGroup = new THREE.Group();
         paintingGroup.position.set(xPos, 2.2, zPos);
@@ -1027,12 +1027,9 @@ function viewWall(side) {
     wallHintLeft.classList.add('hidden');
     wallHintRight.classList.add('hidden');
 
-    // Position camera to see all 3 paintings clearly
-    // Camera should be in center of corridor, facing the wall
+    // Simple camera movement: move to center, face the wall
     const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-    const targetPos = side === 'left'
-        ? new THREE.Vector3(-3.2, 1.7, 0) // Closer to left wall, centered vertically
-        : new THREE.Vector3(3.2, 1.7, 0); // Closer to right wall, centered vertically
+    const targetPos = new THREE.Vector3(0, 2.2, 0); // Center of corridor, higher up
 
     animateCamera(
         camera.position.clone(),
@@ -1267,11 +1264,10 @@ function goBack() {
         corridorGroup.forEach(obj => obj.visible = true);
         renderer.domElement.style.cursor = 'default';
 
-        const side = camera.position.x < 0 ? 'left' : 'right';
+        // Determine which wall we were viewing based on camera rotation
+        const side = Math.abs(camera.rotation.y - Math.PI / 2) < 0.1 ? 'left' : 'right';
         const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-        const targetPos = side === 'left'
-            ? new THREE.Vector3(-3.2, 1.7, 0)
-            : new THREE.Vector3(3.2, 1.7, 0);
+        const targetPos = new THREE.Vector3(0, 2.2, 0);
 
         isAnimating = true;
         animateCamera(

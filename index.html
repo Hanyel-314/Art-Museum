@@ -490,7 +490,7 @@
 
             // Camera setup
             camera = new THREE.PerspectiveCamera(
-                75,
+                80,
                 window.innerWidth / window.innerHeight,
                 0.1,
                 100
@@ -1249,10 +1249,9 @@
             wallHintLeft.classList.add('hidden');
             wallHintRight.classList.add('hidden');
 
+            // Simple camera movement: move to center, face the wall
             const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-            const targetPos = side === 'left'
-                ? new THREE.Vector3(-4.5, 1.7, 0)
-                : new THREE.Vector3(4.5, 1.7, 0);
+            const targetPos = new THREE.Vector3(0, 2.2, 0); // Center of corridor, higher up
 
             animateCamera(
                 camera.position.clone(),
@@ -1264,7 +1263,7 @@
                     currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
                     isAnimating = false;
                     backText.textContent = 'Back to Corridor';
-                    console.log(`✅ Viewing ${side} wall`);
+                    console.log(`✅ Viewing ${side} wall - all 3 paintings visible`);
                 }
             );
         }
@@ -1478,11 +1477,10 @@
                 corridorGroup.forEach(obj => obj.visible = true);
                 renderer.domElement.style.cursor = 'default';
 
-                const side = camera.position.x < 0 ? 'left' : 'right';
+                // Determine which wall we were viewing based on camera rotation
+                const side = Math.abs(camera.rotation.y - Math.PI / 2) < 0.1 ? 'left' : 'right';
                 const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-                const targetPos = side === 'left'
-                    ? new THREE.Vector3(-4.5, 1.7, 0)
-                    : new THREE.Vector3(4.5, 1.7, 0);
+                const targetPos = new THREE.Vector3(0, 2.2, 0);
 
                 isAnimating = true;
                 animateCamera(
