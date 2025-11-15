@@ -713,11 +713,11 @@
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
 
-            // Lighting - warm outdoor lighting
-            const ambientLight = new THREE.AmbientLight(0xFFF8E7, 0.6);
+            // Lighting - warm, elegant museum lighting
+            const ambientLight = new THREE.AmbientLight(0xFFF4E8, 0.5); // Soft warm ambient
             scene.add(ambientLight);
 
-            const sunLight = new THREE.DirectionalLight(0xFFE4B5, 1.2);
+            const sunLight = new THREE.DirectionalLight(0xFFEDD5, 0.8); // Softer, warmer sun
             sunLight.position.set(10, 15, 10);
             sunLight.castShadow = true;
             sunLight.shadow.camera.left = -15;
@@ -728,7 +728,7 @@
             sunLight.shadow.mapSize.height = 2048;
             scene.add(sunLight);
 
-            const fillLight = new THREE.DirectionalLight(0xB0C4DE, 0.4);
+            const fillLight = new THREE.DirectionalLight(0xFFF8E0, 0.3); // Warm fill light
             fillLight.position.set(-5, 5, 5);
             scene.add(fillLight);
 
@@ -974,20 +974,36 @@
             corridorGroup.push(floor);
             scene.add(floor);
 
-            // Ceiling - same dimensions and position as floor
+            // Ceiling - clean, continuous plane with warm neutral color
             const ceilingGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
             const ceilingMat = new THREE.MeshStandardMaterial({
-                color: 0xE8D4B8,
-                roughness: 0.9,
+                color: 0xFAF8F3, // Soft off-white
+                roughness: 0.85,
                 metalness: 0,
                 side: THREE.DoubleSide
             });
             const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
             ceiling.rotation.x = Math.PI / 2;
             ceiling.position.set(0, corridorHeight, -corridorLength / 2); // Center at z=-15
+            ceiling.receiveShadow = true;
             ceiling.visible = false;
             corridorGroup.push(ceiling);
             scene.add(ceiling);
+
+            // Optional: Shallow recessed area for chandeliers (subtle coffered effect)
+            const recessGeo = new THREE.PlaneGeometry(3, corridorLength);
+            const recessMat = new THREE.MeshStandardMaterial({
+                color: 0xECE8DD, // Slightly darker for depth
+                roughness: 0.9,
+                metalness: 0,
+                side: THREE.DoubleSide
+            });
+            const recess = new THREE.Mesh(recessGeo, recessMat);
+            recess.rotation.x = Math.PI / 2;
+            recess.position.set(0, corridorHeight - 0.05, -corridorLength / 2);
+            recess.visible = false;
+            corridorGroup.push(recess);
+            scene.add(recess);
 
             // Left wall - extends from z=0 to z=-30
             const leftWallGeo = new THREE.PlaneGeometry(corridorLength, corridorHeight);
@@ -1027,24 +1043,12 @@
 
             // NO FRONT WALL - leave entrance open for clear view down corridor
 
-            // Ceiling frescoes
-            createCeilingFrescoes(corridorLength);
-
-            // Crystal chandeliers - distributed along corridor
-            for (let i = -5; i >= -25; i -= 10) {
-                createChandelier(0, 4.5, i);
-            }
-
-            // Chandelier lighting
-            const warmLightColor = 0xFFE8C0;
-            for (let i = -5; i >= -25; i -= 10) {
-                const chandLight = new THREE.PointLight(warmLightColor, 0.8, 15);
-                chandLight.position.set(0, 4.5, i);
-                chandLight.visible = false;
-                chandLight.castShadow = true;
-                corridorGroup.push(chandLight);
-                scene.add(chandLight);
-            }
+            // Elegant crystal chandeliers - 3 along the corridor
+            // Near entrance, middle, and far end
+            const chandelierPositions = [-5, -15, -25];
+            chandelierPositions.forEach(z => {
+                createChandelier(0, corridorHeight - 0.2, z); // Hang from ceiling
+            });
 
             // Gold moldings
             createGoldMoldings(corridorLength, corridorWidth);
@@ -1060,79 +1064,105 @@
             console.log('✅ Clean open corridor created');
         }
 
-        function createCeilingFrescoes(corridorLength) {
-            const frescoPanels = [
-                { color: 0xD4A574, z: -5 },
-                { color: 0xB8C4D8, z: -15 },
-                { color: 0xE8C4A8, z: -25 }
-            ];
-
-            frescoPanels.forEach(panel => {
-                const panelGeo = new THREE.PlaneGeometry(8, 8);
-                const panelMat = new THREE.MeshStandardMaterial({
-                    color: panel.color,
-                    roughness: 0.9,
-                    metalness: 0,
-                    emissive: panel.color,
-                    emissiveIntensity: 0.1
-                });
-                const fresco = new THREE.Mesh(panelGeo, panelMat);
-                fresco.rotation.x = Math.PI / 2;
-                fresco.position.set(0, 5.95, panel.z);
-                fresco.visible = false;
-                corridorGroup.push(fresco);
-                scene.add(fresco);
-
-                const borderGeo = new THREE.TorusGeometry(4.2, 0.08, 8, 24);
-                const borderMat = new THREE.MeshStandardMaterial({
-                    color: 0xFFD700,
-                    roughness: 0.3,
-                    metalness: 0.9
-                });
-                const border = new THREE.Mesh(borderGeo, borderMat);
-                border.rotation.x = Math.PI / 2;
-                border.position.set(0, 5.9, panel.z);
-                border.visible = false;
-                corridorGroup.push(border);
-                scene.add(border);
-            });
-        }
-
         function createChandelier(x, y, z) {
             const chandelierGroup = new THREE.Group();
             chandelierGroup.position.set(x, y, z);
             chandelierGroup.visible = false;
 
-            const baseGeo = new THREE.CylinderGeometry(0.3, 0.4, 0.2, 12);
+            // Materials
             const goldMat = new THREE.MeshStandardMaterial({
-                color: 0xFFD700,
-                roughness: 0.2,
-                metalness: 0.9
+                color: 0xD4AF37, // Rich gold/brass
+                roughness: 0.25,
+                metalness: 0.85
             });
-            const base = new THREE.Mesh(baseGeo, goldMat);
-            chandelierGroup.add(base);
 
             const crystalMat = new THREE.MeshStandardMaterial({
-                color: 0xFFFFFF,
-                roughness: 0.1,
-                metalness: 0.3,
+                color: 0xE8F4FF, // Slight bluish tint
+                roughness: 0.05,
+                metalness: 0.1,
                 transparent: true,
-                opacity: 0.9
+                opacity: 0.85,
+                envMapIntensity: 1.5
             });
 
-            for (let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
-                const radius = 0.5;
-                const crystalGeo = new THREE.ConeGeometry(0.05, 0.3, 6);
-                const crystal = new THREE.Mesh(crystalGeo, crystalMat);
-                crystal.position.set(
-                    Math.cos(angle) * radius,
-                    -0.3,
-                    Math.sin(angle) * radius
-                );
-                crystal.rotation.x = Math.PI;
-                chandelierGroup.add(crystal);
+            // Top ceiling plate (small circular disc)
+            const plateGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.05, 16);
+            const plate = new THREE.Mesh(plateGeo, goldMat);
+            plate.position.y = 0.15;
+            chandelierGroup.add(plate);
+
+            // Central vertical stem (thin metallic cylinder)
+            const stemGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.2, 12);
+            const stem = new THREE.Mesh(stemGeo, goldMat);
+            stem.position.y = -0.45;
+            chandelierGroup.add(stem);
+
+            // 4 Circular tiers/rings with decreasing radii
+            const tiers = [
+                { radius: 0.7, y: -0.2, crystals: 10 },
+                { radius: 0.55, y: -0.5, crystals: 8 },
+                { radius: 0.4, y: -0.8, crystals: 6 },
+                { radius: 0.25, y: -1.0, crystals: 5 }
+            ];
+
+            tiers.forEach(tier => {
+                // Gold ring/hoop
+                const ringGeo = new THREE.TorusGeometry(tier.radius, 0.025, 8, 24);
+                const ring = new THREE.Mesh(ringGeo, goldMat);
+                ring.rotation.x = Math.PI / 2;
+                ring.position.y = tier.y;
+                chandelierGroup.add(ring);
+
+                // Hanging crystals from this tier
+                for (let i = 0; i < tier.crystals; i++) {
+                    const angle = (i / tier.crystals) * Math.PI * 2;
+
+                    // Elongated crystal cone (varying lengths for organic feel)
+                    const crystalLength = 0.25 + Math.random() * 0.15;
+                    const crystalGeo = new THREE.ConeGeometry(0.04, crystalLength, 6);
+                    const crystal = new THREE.Mesh(crystalGeo, crystalMat);
+
+                    crystal.position.set(
+                        Math.cos(angle) * tier.radius,
+                        tier.y - crystalLength / 2 - 0.05,
+                        Math.sin(angle) * tier.radius
+                    );
+                    crystal.rotation.x = Math.PI; // Point downward
+                    chandelierGroup.add(crystal);
+
+                    // Small sphere at attachment point
+                    const beadGeo = new THREE.SphereGeometry(0.03, 8, 8);
+                    const bead = new THREE.Mesh(beadGeo, crystalMat);
+                    bead.position.set(
+                        Math.cos(angle) * tier.radius,
+                        tier.y - 0.02,
+                        Math.sin(angle) * tier.radius
+                    );
+                    chandelierGroup.add(bead);
+                }
+            });
+
+            // Central glowing orbs/bulbs inside the chandelier
+            const bulbMat = new THREE.MeshStandardMaterial({
+                color: 0xFFF4E0,
+                emissive: 0xFFE8B0,
+                emissiveIntensity: 0.6,
+                roughness: 0.3,
+                metalness: 0.1
+            });
+
+            for (let i = 0; i < 3; i++) {
+                const bulbGeo = new THREE.SphereGeometry(0.08, 12, 12);
+                const bulb = new THREE.Mesh(bulbGeo, bulbMat);
+                bulb.position.y = -0.3 - i * 0.3;
+                chandelierGroup.add(bulb);
             }
+
+            // Warm point light at center
+            const warmLight = new THREE.PointLight(0xFFF1C4, 1.2, 18);
+            warmLight.position.set(0, -0.5, 0);
+            warmLight.castShadow = false; // Avoid harsh shadows
+            chandelierGroup.add(warmLight);
 
             corridorGroup.push(chandelierGroup);
             scene.add(chandelierGroup);
