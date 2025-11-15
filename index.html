@@ -1072,6 +1072,16 @@
                 plaque.position.set(0, -1.45, 0.08);
                 paintingGroup.add(plaque);
 
+                // Disable shadows for leftmost painting on left wall (index 0)
+                if (side === 'left' && i === 0) {
+                    paintingGroup.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = false;
+                            child.receiveShadow = false;
+                        }
+                    });
+                }
+
                 // Lighting
                 const washLight = new THREE.SpotLight(0xFFF4E0, 0.8, 6, Math.PI / 8, 0.5);
                 washLight.position.copy(paintingGroup.position);

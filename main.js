@@ -398,7 +398,7 @@ function createCorridorScene() {
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
+    floor.receiveShadow = false; // Disable shadow reception to prevent flickering
     floor.visible = false;
     corridorGroup.push(floor);
     scene.add(floor);
@@ -708,6 +708,16 @@ function createBaroquePaintings(side, xPos, storageArray) {
         rightFrame.position.x = (canvasSize / 2) + (frameThick / 2);
         paintingGroup.add(rightFrame);
 
+        // Disable shadows for leftmost painting on left wall (index 0)
+        if (side === 'left' && i === 0) {
+            paintingGroup.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = false;
+                    child.receiveShadow = false;
+                }
+            });
+        }
+
         // Wall light above painting
         const wallLight = new THREE.SpotLight(0xFFE8C0, 0.5, 4, Math.PI / 8, 0.4);
         wallLight.position.copy(paintingGroup.position);
@@ -911,6 +921,16 @@ function createWallPaintings(side, xPos, storageArray) {
         plaque.position.set(0, -1.45, 0.08);
         paintingGroup.add(plaque);
 
+        // Disable shadows for leftmost painting on left wall (index 0)
+        if (side === 'left' && i === 0) {
+            paintingGroup.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = false;
+                    child.receiveShadow = false;
+                }
+            });
+        }
+
         // Dedicated wash light for this painting
         const washLight = new THREE.SpotLight(0xFFF4E0, 0.8, 6, Math.PI / 8, 0.5);
         washLight.position.copy(paintingGroup.position);
@@ -918,7 +938,7 @@ function createWallPaintings(side, xPos, storageArray) {
         washLight.position.z += (side === 'left' ? -0.2 : 0.2);
         washLight.target.position.copy(paintingGroup.position);
         washLight.visible = false;
-        washLight.castShadow = true;
+        washLight.castShadow = !(side === 'left' && i === 0);
         corridorGroup.push(washLight);
         corridorGroup.push(washLight.target);
         scene.add(washLight);
