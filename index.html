@@ -1466,7 +1466,7 @@
             whiteFade.style.height = '100%';
             whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
             whiteFade.style.opacity = '0';
-            whiteFade.style.transition = 'opacity 0.6s ease-in';
+            whiteFade.style.transition = 'opacity 0.8s ease-in-out';
             whiteFade.style.zIndex = '1999';
             whiteFade.style.pointerEvents = 'none';
             document.body.appendChild(whiteFade);
@@ -1498,7 +1498,8 @@
                 detailMedium.textContent = artworkData.medium;
                 detailDescription.textContent = artworkData.description;
 
-                // Show the detail overlay
+                // Show the detail overlay (initially transparent)
+                detailOverlay.style.opacity = '0';
                 detailOverlay.classList.add('active');
 
                 // Show back button
@@ -1509,14 +1510,21 @@
                 currentView = 'DETAIL';
                 console.log('✅ Detail view ready - pure black 2D overlay');
 
-                // Fade out white overlay
-                whiteFade.style.transition = 'opacity 0.6s ease-out';
-                whiteFade.style.opacity = '0';
-
+                // Wait a bit at peak brightness, then fade out white and fade in detail
                 setTimeout(() => {
-                    document.body.removeChild(whiteFade);
-                }, 600);
-            }, 600);
+                    // Fade in the detail overlay
+                    detailOverlay.style.transition = 'opacity 0.8s ease-in-out';
+                    detailOverlay.style.opacity = '1';
+
+                    // Fade out white overlay
+                    whiteFade.style.transition = 'opacity 0.8s ease-in-out';
+                    whiteFade.style.opacity = '0';
+
+                    setTimeout(() => {
+                        document.body.removeChild(whiteFade);
+                    }, 800);
+                }, 300);
+            }, 800);
         }
 
         function closeDetailOverlay() {
@@ -1528,63 +1536,72 @@
                 (ARTWORKS.left.includes(selectedPainting) ? 'left' : 'right') :
                 'left';
 
-            // White fade-out transition
-            const whiteFade = document.createElement('div');
-            whiteFade.style.position = 'fixed';
-            whiteFade.style.top = '0';
-            whiteFade.style.left = '0';
-            whiteFade.style.width = '100%';
-            whiteFade.style.height = '100%';
-            whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
-            whiteFade.style.opacity = '0';
-            whiteFade.style.transition = 'opacity 0.6s ease-in';
-            whiteFade.style.zIndex = '2999';
-            whiteFade.style.pointerEvents = 'none';
-            document.body.appendChild(whiteFade);
+            // Fade out detail overlay first
+            detailOverlay.style.transition = 'opacity 0.5s ease-in-out';
+            detailOverlay.style.opacity = '0';
 
             setTimeout(() => {
-                whiteFade.style.opacity = '1';
-            }, 50);
-
-            setTimeout(() => {
-                // Hide the detail overlay
-                detailOverlay.classList.remove('active');
-
-                // Show canvas again
-                renderer.domElement.style.display = 'block';
-
-                // Restore gallery scene
-                scene.background = new THREE.Color(0xFAF8F3);
-                scene.fog = new THREE.Fog(0xFAF8F3, 15, 35);
-                renderer.setClearColor(0xFAF8F3, 1);
-
-                // Show corridor objects again
-                corridorGroup.forEach(obj => obj.visible = true);
-
-                const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-                const targetPos = new THREE.Vector3(0, 2, -10);
-
-                // Snap camera back to wall view instantly
-                camera.position.copy(targetPos);
-                camera.rotation.set(0, targetAngle, 0);
-
-                currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
-                selectedPainting = null;
-
-                // Keep back button visible and update text
-                backBtn.classList.remove('hidden');
-                backText.textContent = 'Back to Corridor';
-
-                console.log(`✅ Returned to ${side} wall view`);
-
-                // Fade out white overlay
-                whiteFade.style.transition = 'opacity 0.6s ease-out';
+                // White fade-in transition
+                const whiteFade = document.createElement('div');
+                whiteFade.style.position = 'fixed';
+                whiteFade.style.top = '0';
+                whiteFade.style.left = '0';
+                whiteFade.style.width = '100%';
+                whiteFade.style.height = '100%';
+                whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
                 whiteFade.style.opacity = '0';
+                whiteFade.style.transition = 'opacity 0.7s ease-in-out';
+                whiteFade.style.zIndex = '2999';
+                whiteFade.style.pointerEvents = 'none';
+                document.body.appendChild(whiteFade);
 
                 setTimeout(() => {
-                    document.body.removeChild(whiteFade);
-                }, 600);
-            }, 600);
+                    whiteFade.style.opacity = '1';
+                }, 50);
+
+                setTimeout(() => {
+                    // Hide the detail overlay
+                    detailOverlay.classList.remove('active');
+                    detailOverlay.style.opacity = '1'; // Reset for next time
+
+                    // Show canvas again
+                    renderer.domElement.style.display = 'block';
+
+                    // Restore gallery scene
+                    scene.background = new THREE.Color(0xFAF8F3);
+                    scene.fog = new THREE.Fog(0xFAF8F3, 15, 35);
+                    renderer.setClearColor(0xFAF8F3, 1);
+
+                    // Show corridor objects again
+                    corridorGroup.forEach(obj => obj.visible = true);
+
+                    const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+                    const targetPos = new THREE.Vector3(0, 2, -10);
+
+                    // Snap camera back to wall view instantly
+                    camera.position.copy(targetPos);
+                    camera.rotation.set(0, targetAngle, 0);
+
+                    currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
+                    selectedPainting = null;
+
+                    // Keep back button visible and update text
+                    backBtn.classList.remove('hidden');
+                    backText.textContent = 'Back to Corridor';
+
+                    console.log(`✅ Returned to ${side} wall view`);
+
+                    // Wait a bit at peak brightness, then fade out white
+                    setTimeout(() => {
+                        whiteFade.style.transition = 'opacity 0.7s ease-in-out';
+                        whiteFade.style.opacity = '0';
+
+                        setTimeout(() => {
+                            document.body.removeChild(whiteFade);
+                        }, 700);
+                    }, 300);
+                }, 700);
+            }, 500);
         }
 
         function goBack() {
@@ -1597,12 +1614,14 @@
 
             } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
                 isAnimating = true;
+
+                // Smooth transition back to corridor entrance
                 animateCamera(
                     camera.position.clone(),
                     new THREE.Vector3(0, 1.7, -2), // Return to entrance position
                     camera.rotation.clone(),
                     new THREE.Euler(0, 0, 0),
-                    800,
+                    1400, // Longer duration for smoother transition
                     () => {
                         currentView = 'CORRIDOR';
                         isAnimating = false;
