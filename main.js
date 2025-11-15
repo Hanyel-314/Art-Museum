@@ -1119,99 +1119,29 @@ function createPaintingWhiteLightTransition(artworkData) {
         const size = 3.5;
         const canvasDepth = 0.12;
 
-    // Front canvas (painted surface)
+    // Front canvas (painted surface) - ONLY front, no back or edges
     const frontGeo = new THREE.PlaneGeometry(size, size);
     const frontMat = new THREE.MeshStandardMaterial({
         color: artworkData.color,
         roughness: 0.75,
-        metalness: 0
+        metalness: 0,
+        side: THREE.FrontSide // Only front side visible
     });
     const front = new THREE.Mesh(frontGeo, frontMat);
-    front.position.z = canvasDepth / 2;
+    front.position.z = 0; // Flat against the frame
     detailArtwork.add(front);
 
-    // Canvas edges (visible when rotated)
-    const edgeColor = 0xE8E0D0;
-    const edgeMat = new THREE.MeshStandardMaterial({
-        color: edgeColor,
-        roughness: 0.9
-    });
+    // Removed: Canvas edges, back, and support bars - only showing front
 
-    const topEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(size, 0.02, canvasDepth),
-        edgeMat
-    );
-    topEdge.position.y = size / 2;
-    detailArtwork.add(topEdge);
-
-    const bottomEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(size, 0.02, canvasDepth),
-        edgeMat
-    );
-    bottomEdge.position.y = -size / 2;
-    detailArtwork.add(bottomEdge);
-
-    const leftEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(0.02, size, canvasDepth),
-        edgeMat
-    );
-    leftEdge.position.x = -size / 2;
-    detailArtwork.add(leftEdge);
-
-    const rightEdge = new THREE.Mesh(
-        new THREE.BoxGeometry(0.02, size, canvasDepth),
-        edgeMat
-    );
-    rightEdge.position.x = size / 2;
-    detailArtwork.add(rightEdge);
-
-    // Back of canvas (linen texture)
-    const backGeo = new THREE.PlaneGeometry(size - 0.15, size - 0.15);
-    const backMat = new THREE.MeshStandardMaterial({
-        color: 0xC8B896,
-        roughness: 0.95
-    });
-    const back = new THREE.Mesh(backGeo, backMat);
-    back.position.z = -canvasDepth / 2;
-    back.rotation.y = Math.PI;
-    detailArtwork.add(back);
-
-    // Wooden support bars (visible on back)
-    const barMat = new THREE.MeshStandardMaterial({
-        color: 0x5D4E37,
-        roughness: 0.85
-    });
-
-    const bar1 = new THREE.Mesh(
-        new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
-        barMat
-    );
-    bar1.position.set(0, size / 3, -canvasDepth / 2 - 0.03);
-    detailArtwork.add(bar1);
-
-    const bar2 = new THREE.Mesh(
-        new THREE.BoxGeometry(size - 0.5, 0.12, 0.05),
-        barMat
-    );
-    bar2.position.set(0, -size / 3, -canvasDepth / 2 - 0.03);
-    detailArtwork.add(bar2);
-
-    const bar3 = new THREE.Mesh(
-        new THREE.BoxGeometry(0.12, size - 0.5, 0.05),
-        barMat
-    );
-    bar3.position.set(0, 0, -canvasDepth / 2 - 0.03);
-    detailArtwork.add(bar3);
-
-    // Ornate frame
+    // Ornate frame (gold colored)
     const frameMat = new THREE.MeshStandardMaterial({
-        color: 0x3E2723,
-        roughness: 0.5,
-        metalness: 0.15
+        color: 0xD4AF37, // Gold frame
+        roughness: 0.3,
+        metalness: 0.8
     });
 
     const frameThick = 0.2;
-    const frameDepth = canvasDepth + 0.15;
+    const frameDepth = 0.15; // Thinner frame for flat presentation
 
     const topFrame = new THREE.Mesh(
         new THREE.BoxGeometry(size + 0.5, frameThick, frameDepth),
@@ -1251,7 +1181,7 @@ function createPaintingWhiteLightTransition(artworkData) {
         metalness: 0.3
     });
     const glass = new THREE.Mesh(glassGeo, glassMat);
-    glass.position.z = canvasDepth / 2 + 0.08;
+    glass.position.z = 0.08; // Just in front of the painting
     detailArtwork.add(glass);
 
     scene.add(detailArtwork);
@@ -1305,45 +1235,75 @@ function goBack() {
     console.log('⬅️ Going back...');
 
     if (currentView === 'DETAIL') {
-        // Clean up detail view
-        if (detailArtwork) {
-            scene.remove(detailArtwork);
-            detailArtwork = null;
-        }
-
-        // Remove lighting
-        if (detailKeyLight) scene.remove(detailKeyLight);
-        if (detailRimLight) scene.remove(detailRimLight);
-        if (detailFillLight) scene.remove(detailFillLight);
-        if (detailKeyLight && detailKeyLight.target) scene.remove(detailKeyLight.target);
-        detailKeyLight = detailRimLight = detailFillLight = null;
-
-        // Restore corridor
-        scene.background = new THREE.Color(0xFAF8F3);
-        scene.fog = new THREE.Fog(0xFAF8F3, 15, 25); // Match corridor fog settings
-        hideArtworkInfo();
-        corridorGroup.forEach(obj => obj.visible = true);
-        renderer.domElement.style.cursor = 'default';
-
-        // Determine which wall we were viewing based on camera rotation
-        const side = Math.abs(camera.rotation.y - Math.PI / 2) < 0.1 ? 'left' : 'right';
-        const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-        const targetPos = new THREE.Vector3(0, 2.2, -6);
-
         isAnimating = true;
-        animateCamera(
-            camera.position.clone(),
-            targetPos,
-            camera.rotation.clone(),
-            new THREE.Euler(0, targetAngle, 0),
-            1000,
-            () => {
-                currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
-                isAnimating = false;
-                backBtn.textContent = '← Back to Corridor';
-                backBtn.classList.remove('hidden'); // Show back button
+
+        // Create white light transition effect for exiting painting detail
+        const whiteFade = document.createElement('div');
+        whiteFade.style.position = 'fixed';
+        whiteFade.style.top = '0';
+        whiteFade.style.left = '0';
+        whiteFade.style.width = '100%';
+        whiteFade.style.height = '100%';
+        whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
+        whiteFade.style.opacity = '0';
+        whiteFade.style.transition = 'opacity 0.8s ease-in';
+        whiteFade.style.zIndex = '999';
+        whiteFade.style.pointerEvents = 'none';
+        document.body.appendChild(whiteFade);
+
+        // Fade to white
+        setTimeout(() => {
+            whiteFade.style.opacity = '1';
+        }, 50);
+
+        // Transition scene during white out
+        setTimeout(() => {
+            // Clean up detail view
+            if (detailArtwork) {
+                scene.remove(detailArtwork);
+                detailArtwork = null;
             }
-        );
+
+            // Remove lighting
+            if (detailKeyLight) scene.remove(detailKeyLight);
+            if (detailRimLight) scene.remove(detailRimLight);
+            if (detailFillLight) scene.remove(detailFillLight);
+            if (detailKeyLight && detailKeyLight.target) scene.remove(detailKeyLight.target);
+            detailKeyLight = detailRimLight = detailFillLight = null;
+
+            // Restore corridor
+            scene.background = new THREE.Color(0xFAF8F3);
+            scene.fog = new THREE.Fog(0xFAF8F3, 15, 25);
+            hideArtworkInfo();
+            corridorGroup.forEach(obj => obj.visible = true);
+            renderer.domElement.style.cursor = 'default';
+
+            // Determine which wall we were viewing
+            const side = Math.abs(camera.rotation.y - Math.PI / 2) < 0.1 ? 'left' : 'right';
+            const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+            const targetPos = new THREE.Vector3(0, 2.2, -6);
+
+            // Set camera position
+            camera.position.copy(targetPos);
+            camera.rotation.set(0, targetAngle, 0);
+
+            currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
+            backBtn.textContent = '← Back to Corridor';
+            backBtn.classList.remove('hidden');
+        }, 800);
+
+        // Fade from white
+        setTimeout(() => {
+            whiteFade.style.transition = 'opacity 1s ease-out';
+            whiteFade.style.opacity = '0';
+        }, 1000);
+
+        // Complete transition
+        setTimeout(() => {
+            document.body.removeChild(whiteFade);
+            isAnimating = false;
+            console.log('✅ Returned to wall gallery');
+        }, 2000);
 
     } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
         // Return to corridor center - position to see both walls
