@@ -193,12 +193,12 @@ function init() {
 function createEntranceScene() {
     console.log('Creating entrance scene...');
 
-    // Stone ground with pattern
+    // Uniform matte ground - no texture or pattern
     const groundGeo = new THREE.PlaneGeometry(30, 30);
     const groundMat = new THREE.MeshStandardMaterial({
-        color: 0xC8B8A0,
-        roughness: 0.8,
-        metalness: 0.1
+        color: 0xE8E0D0, // Uniform light beige
+        roughness: 1.0, // Completely matte - no reflections
+        metalness: 0 // No metallic properties
     });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
@@ -388,11 +388,11 @@ function createCorridorScene() {
     const corridorLength = 20; // Shorter, enclosed space
     const corridorWidth = 12; // Wider corridor
 
-    // Glossy marble floor with simple material (no reflection to prevent flickering)
+    // Uniform matte floor - no texture, pattern, or reflection
     const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
     const floorMat = new THREE.MeshStandardMaterial({
-        color: 0xF8F4E8, // Cream marble
-        roughness: 0.9, // Matte finish to prevent flickering
+        color: 0xE8E0D0, // Uniform light beige (same as entrance)
+        roughness: 1.0, // Completely matte - eliminates all reflections and flickering
         metalness: 0 // No metallic properties
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
