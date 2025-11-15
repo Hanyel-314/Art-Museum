@@ -1495,6 +1495,7 @@
                 () => {
                     currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
                     isAnimating = false;
+                    backBtn.classList.remove('hidden');
                     backText.textContent = 'Back to Corridor';
                     console.log(`✅ Viewing ${side} wall - all 3 paintings visible`);
                 }
@@ -1531,6 +1532,10 @@
 
             // Show the detail overlay
             detailOverlay.classList.add('active');
+
+            // Show back button
+            backBtn.classList.remove('hidden');
+            backText.textContent = 'Back to Gallery';
 
             // Update state
             currentView = 'DETAIL';
@@ -1569,6 +1574,10 @@
 
             currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
             selectedPainting = null;
+
+            // Keep back button visible and update text
+            backBtn.classList.remove('hidden');
+            backText.textContent = 'Back to Corridor';
 
             console.log(`✅ Returned to ${side} wall view`);
         }
