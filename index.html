@@ -1321,63 +1321,53 @@
         }
 
         function createPlaqueLabel(text) {
-            // Create high-resolution offscreen canvas for crisp text
+            // Create ultra-high-resolution canvas for crystal-clear text
             const canvas = document.createElement('canvas');
-            canvas.width = 2048;  // 4x resolution for sharp rendering
-            canvas.height = 512;  // 4x resolution
-            const ctx = canvas.getContext('2d', { alpha: false });
+            canvas.width = 3072;  // Ultra-high resolution (3x base)
+            canvas.height = 768;  // Ultra-high resolution
+            const ctx = canvas.getContext('2d', {
+                alpha: false,
+                desynchronized: true,
+                willReadFrequently: false
+            });
 
-            // Enable high-quality text rendering
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
+            // Disable image smoothing for crisp vector-style rendering
+            ctx.imageSmoothingEnabled = false;
 
-            // Dark wood background
-            ctx.fillStyle = '#3b2a16';
+            // Solid dark wood background (NO noise, NO texture)
+            ctx.fillStyle = '#2a1f15'; // Rich dark walnut
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Add subtle wood grain texture
-            ctx.fillStyle = 'rgba(70, 50, 30, 0.15)';
-            for (let i = 0; i < 20; i++) {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const width = Math.random() * 100 + 50;
-                ctx.fillRect(x, y, width, 2);
-            }
-
-            // Gold text with shadow for depth
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            ctx.shadowBlur = 4;
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
-
-            // High-resolution serif font (4x size for 4x canvas)
-            ctx.font = 'bold 168px "Garamond", "Times New Roman", serif';
-            ctx.fillStyle = '#f5e2a8';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-
-            // Add slight highlight on text for polished look
+            // NO shadow, NO blur, NO effects - pure crisp text only
             ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
-            ctx.fillStyle = 'rgba(255, 250, 230, 0.3)';
-            ctx.font = 'bold 168px "Garamond", "Times New Roman", serif';
-            ctx.fillText(text, canvas.width / 2 - 1, canvas.height / 2 - 2);
 
-            // Create texture from canvas with optimal filtering
+            // Ultra-high-resolution serif font for vector-crisp rendering
+            ctx.font = '600 240px "Georgia", "Garamond", "Times New Roman", serif';
+            ctx.fillStyle = '#f8e5b8'; // Elegant gold (high contrast with dark background)
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Render text with maximum sharpness (no anti-aliasing artifacts)
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            // Create texture with optimal settings for sharpness
             const texture = new THREE.CanvasTexture(canvas);
             texture.needsUpdate = true;
 
-            // Critical: Set proper texture filtering for sharp text
-            texture.minFilter = THREE.LinearFilter;  // Prevents pixelation when far
-            texture.magFilter = THREE.LinearFilter;  // Smooth when close
-            texture.generateMipmaps = false;  // Not needed with LinearFilter
+            // Critical filtering for razor-sharp text at any distance
+            texture.minFilter = THREE.LinearFilter;  // Prevents pixelation
+            texture.magFilter = THREE.LinearFilter;  // Smooth scaling
+            texture.generateMipmaps = false;  // Avoids blur from mipmap levels
 
-            // Enable anisotropic filtering for maximum sharpness at angles
+            // Maximum anisotropic filtering for sharpness at angles
             const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
             texture.anisotropy = Math.min(16, maxAnisotropy);
 
-            // Create plane with the text texture
+            // Add subtle bronze trim border (optional elegant accent)
+            const labelGroup = new THREE.Group();
+
+            // Main label plane with text texture
             const labelGeo = new THREE.PlaneGeometry(0.95, 0.14);
             const labelMat = new THREE.MeshBasicMaterial({
                 map: texture,
@@ -1386,8 +1376,52 @@
                 depthTest: true
             });
             const labelMesh = new THREE.Mesh(labelGeo, labelMat);
+            labelGroup.add(labelMesh);
 
-            return labelMesh;
+            // Thin bronze border frame (clean, elegant)
+            const borderMat = new THREE.MeshStandardMaterial({
+                color: 0xB8860B, // Antique bronze
+                roughness: 0.4,
+                metalness: 0.7
+            });
+
+            // Top border
+            const topBorder = new THREE.Mesh(
+                new THREE.BoxGeometry(0.98, 0.008, 0.01),
+                borderMat
+            );
+            topBorder.position.y = 0.074;
+            topBorder.position.z = -0.005;
+            labelGroup.add(topBorder);
+
+            // Bottom border
+            const bottomBorder = new THREE.Mesh(
+                new THREE.BoxGeometry(0.98, 0.008, 0.01),
+                borderMat
+            );
+            bottomBorder.position.y = -0.074;
+            bottomBorder.position.z = -0.005;
+            labelGroup.add(bottomBorder);
+
+            // Left border
+            const leftBorder = new THREE.Mesh(
+                new THREE.BoxGeometry(0.008, 0.14, 0.01),
+                borderMat
+            );
+            leftBorder.position.x = -0.475;
+            leftBorder.position.z = -0.005;
+            labelGroup.add(leftBorder);
+
+            // Right border
+            const rightBorder = new THREE.Mesh(
+                new THREE.BoxGeometry(0.008, 0.14, 0.01),
+                borderMat
+            );
+            rightBorder.position.x = 0.475;
+            rightBorder.position.z = -0.005;
+            labelGroup.add(rightBorder);
+
+            return labelGroup;
         }
 
         function createWallPaintings(side, xPos, storageArray) {
