@@ -778,41 +778,26 @@
             ground.receiveShadow = true;
             scene.add(ground);
 
-            // Museum facade - stone wall
-            const facadeGeo = new THREE.BoxGeometry(12, 10, 0.8);
-            const facadeMat = new THREE.MeshStandardMaterial({
-                color: 0xD9CEB8,
-                roughness: 0.9,
-                metalness: 0
+            // Golden light portal behind doors
+            const portalGeo = new THREE.PlaneGeometry(6, 8);
+            const portalMat = new THREE.MeshStandardMaterial({
+                color: 0xFFD700,
+                emissive: 0xFFD700,
+                emissiveIntensity: 1.5,
+                roughness: 0.2,
+                metalness: 0.3
             });
-            const facade = new THREE.Mesh(facadeGeo, facadeMat);
-            facade.position.set(0, 5, -0.5);
-            facade.receiveShadow = true;
-            facade.castShadow = true;
-            scene.add(facade);
+            const portal = new THREE.Mesh(portalGeo, portalMat);
+            portal.position.set(0, 4, -0.3);
+            scene.add(portal);
 
-            // Decorative cornice on top
-            const corniceGeo = new THREE.BoxGeometry(13, 0.5, 1);
-            const cornice = new THREE.Mesh(corniceGeo, facadeMat);
-            cornice.position.set(0, 10.2, -0.5);
-            scene.add(cornice);
+            // Add golden glow light
+            const portalLight = new THREE.PointLight(0xFFD700, 2, 20);
+            portalLight.position.set(0, 4, 0);
+            scene.add(portalLight);
 
             // "ART MUSEUM" sign
             createMuseumSign();
-
-            // Decorative relief panels
-            for (let i = -1; i <= 1; i++) {
-                if (i === 0) continue;
-                const reliefGeo = new THREE.BoxGeometry(2, 2, 0.1);
-                const reliefMat = new THREE.MeshStandardMaterial({
-                    color: 0xC8B8A0,
-                    roughness: 0.7,
-                    metalness: 0.1
-                });
-                const relief = new THREE.Mesh(reliefGeo, reliefMat);
-                relief.position.set(i * 4, 7, -0.1);
-                scene.add(relief);
-            }
 
             // Pillars - moved to entrance area only, away from corridor
             createPillar(-4.5, 0, -1);
