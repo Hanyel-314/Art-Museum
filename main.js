@@ -413,7 +413,7 @@ function createCorridorScene() {
     console.log('Creating baroque corridor...');
 
     // Enclosed gallery space
-    const corridorLength = 20; // Shorter, enclosed space
+    const corridorLength = 30; // Extended corridor to accommodate all paintings
     const corridorWidth = 12; // Wider corridor
 
     // Glossy marble floor with reflective properties
@@ -460,10 +460,10 @@ function createCorridorScene() {
     scene.add(recess);
 
     // Elegant crystal chandeliers - 3 along the corridor
-    // Near entrance, middle, and near sculpture
-    createChandelier(0, 5.2, -5);   // Near entrance
-    createChandelier(0, 5.2, -15);  // Middle
-    createChandelier(0, 5.2, -25);  // Near sculpture
+    // Near entrance, middle, and near back end
+    createChandelier(0, 5.2, -3);   // Near entrance
+    createChandelier(0, 5.2, -8);   // Middle
+    createChandelier(0, 5.2, -13);  // Near back end
 
     // Walls with ornate decorations
     const wallMat = new THREE.MeshStandardMaterial({
@@ -668,8 +668,8 @@ function createBaroquePaintings(side, xPos, storageArray) {
 
     // Create many paintings along the corridor (10 paintings per wall)
     const paintingCount = 10;
-    const startZ = -18;
-    const spacing = 3.8;
+    const startZ = -13;  // Start within corridor bounds (corridor: -15 to +15)
+    const spacing = 2.6; // Evenly distributed: -13 to +10.4
 
     for (let i = 0; i < paintingCount; i++) {
         const zPos = startZ + (i * spacing);
@@ -857,122 +857,6 @@ function createCorridorSculpture() {
     scene.add(sculptureGroup);
 
     console.log('✅ Sculpture created at corridor end');
-}
-
-function createWallPaintings(side, xPos, storageArray) {
-    const artworks = ARTWORKS[side];
-    const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-
-    artworks.forEach((artwork, i) => {
-        const zPos = -12 + (i * 6); // Spacing: -12, -6, 0 (closer to camera, evenly distributed)
-
-        const paintingGroup = new THREE.Group();
-        paintingGroup.position.set(xPos, 2.2, zPos);
-        paintingGroup.rotation.y = rotation;
-        paintingGroup.visible = false;
-        paintingGroup.userData.clickable = true;
-        paintingGroup.userData.type = 'painting';
-        paintingGroup.userData.data = artwork;
-        paintingGroup.userData.side = side;
-
-        // Canvas with artwork color
-        const canvasGeo = new THREE.PlaneGeometry(2.2, 2.2);
-        const canvasMat = new THREE.MeshStandardMaterial({
-            color: artwork.color,
-            roughness: 0.7,
-            metalness: 0
-        });
-        const canvas = new THREE.Mesh(canvasGeo, canvasMat);
-        canvas.position.z = 0.03;
-        paintingGroup.add(canvas);
-
-        // Anti-reflection glass
-        const glassGeo = new THREE.PlaneGeometry(2.3, 2.3);
-        const glassMat = new THREE.MeshStandardMaterial({
-            color: 0xFFFFFF,
-            transparent: true,
-            opacity: 0.08,
-            roughness: 0.05,
-            metalness: 0.2,
-            envMapIntensity: 0.5
-        });
-        const glass = new THREE.Mesh(glassGeo, glassMat);
-        glass.position.z = 0.08;
-        paintingGroup.add(glass);
-
-        // Dark walnut wood frame
-        const frameColor = 0x3E2723;
-        const frameMat = new THREE.MeshStandardMaterial({
-            color: frameColor,
-            roughness: 0.6,
-            metalness: 0.1
-        });
-
-        const frameThick = 0.12;
-        const frameDepth = 0.15;
-
-        // Top frame
-        const topFrame = new THREE.Mesh(
-            new THREE.BoxGeometry(2.5, frameThick, frameDepth),
-            frameMat
-        );
-        topFrame.position.y = 1.19;
-        paintingGroup.add(topFrame);
-
-        // Bottom frame
-        const bottomFrame = new THREE.Mesh(
-            new THREE.BoxGeometry(2.5, frameThick, frameDepth),
-            frameMat
-        );
-        bottomFrame.position.y = -1.19;
-        paintingGroup.add(bottomFrame);
-
-        // Left frame
-        const leftFrame = new THREE.Mesh(
-            new THREE.BoxGeometry(frameThick, 2.26, frameDepth),
-            frameMat
-        );
-        leftFrame.position.x = -1.19;
-        paintingGroup.add(leftFrame);
-
-        // Right frame
-        const rightFrame = new THREE.Mesh(
-            new THREE.BoxGeometry(frameThick, 2.26, frameDepth),
-            frameMat
-        );
-        rightFrame.position.x = 1.19;
-        paintingGroup.add(rightFrame);
-
-        // Brass plaque
-        const plaqueGeo = new THREE.BoxGeometry(1.0, 0.15, 0.03);
-        const plaqueMat = new THREE.MeshStandardMaterial({
-            color: 0xB8860B,
-            roughness: 0.3,
-            metalness: 0.8
-        });
-        const plaque = new THREE.Mesh(plaqueGeo, plaqueMat);
-        plaque.position.set(0, -1.45, 0.08);
-        paintingGroup.add(plaque);
-
-        // Dedicated wash light for this painting
-        const washLight = new THREE.SpotLight(0xFFF4E0, 0.8, 6, Math.PI / 8, 0.5);
-        washLight.position.copy(paintingGroup.position);
-        washLight.position.y += 1.8;
-        washLight.position.z += (side === 'left' ? -0.2 : 0.2);
-        washLight.target.position.copy(paintingGroup.position);
-        washLight.visible = false;
-        washLight.castShadow = true;
-        corridorGroup.push(washLight);
-        corridorGroup.push(washLight.target);
-        scene.add(washLight);
-        scene.add(washLight.target);
-
-        storageArray.push(paintingGroup);
-        corridorGroup.push(paintingGroup);
-        scene.add(paintingGroup);
-    });
-
-    console.log(`✅ Created ${artworks.length} paintings on ${side} wall`);
 }
 
 // ============================================
