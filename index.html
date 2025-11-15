@@ -1197,6 +1197,39 @@
             }
         }
 
+        function createPlaqueLabel(text) {
+            // Create an offscreen canvas to render the text
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+
+            // Dark wood background
+            ctx.fillStyle = '#3b2a16';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Gold text in serif font
+            ctx.font = 'bold 42px "Times New Roman", serif';
+            ctx.fillStyle = '#f5e2a8';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            // Create texture from canvas
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+
+            // Create plane with the text texture
+            const labelGeo = new THREE.PlaneGeometry(0.95, 0.14);
+            const labelMat = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: false
+            });
+            const labelMesh = new THREE.Mesh(labelGeo, labelMat);
+
+            return labelMesh;
+        }
+
         function createWallPaintings(side, xPos, storageArray) {
             const artworks = ARTWORKS[side];
             const rotation = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
@@ -1281,16 +1314,21 @@
                 rightFrame.position.x = 1.19;
                 paintingGroup.add(rightFrame);
 
-                // Plaque
+                // Plaque (wooden nameplate)
                 const plaqueGeo = new THREE.BoxGeometry(1.0, 0.15, 0.03);
                 const plaqueMat = new THREE.MeshStandardMaterial({
-                    color: 0xB8860B,
-                    roughness: 0.3,
-                    metalness: 0.8
+                    color: 0x3b2a16, // Dark wood color to match label background
+                    roughness: 0.6,
+                    metalness: 0.1
                 });
                 const plaque = new THREE.Mesh(plaqueGeo, plaqueMat);
                 plaque.position.set(0, -1.45, 0.08);
                 paintingGroup.add(plaque);
+
+                // Title label on plaque
+                const titleLabel = createPlaqueLabel(artwork.title);
+                titleLabel.position.set(0, -1.45, 0.10); // Slightly in front of plaque
+                paintingGroup.add(titleLabel);
 
                 // Lighting
                 const washLight = new THREE.SpotLight(0xFFF4E0, 0.8, 6, Math.PI / 8, 0.5);
