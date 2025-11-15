@@ -584,6 +584,7 @@
             });
             const ground = new THREE.Mesh(groundGeo, groundMat);
             ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.1; // Slightly below corridor floor to prevent z-fighting
             ground.receiveShadow = true;
             scene.add(ground);
 
@@ -779,7 +780,7 @@
             });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
-            floor.position.set(0, 0, -corridorLength / 2); // Center at z=-15
+            floor.position.set(0, 0, -corridorLength / 2); // Center at z=-15, y=0 (main floor at ground level, entrance ground is at -0.1)
             floor.receiveShadow = false; // No shadows on floor
             floor.visible = false;
             corridorGroup.push(floor);
