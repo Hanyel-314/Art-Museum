@@ -1356,73 +1356,314 @@
             sculptureGroup.position.set(0, 0, -28); // At far end of corridor
             sculptureGroup.visible = false;
 
-            const pedestalGeo = new THREE.CylinderGeometry(0.6, 0.7, 0.3, 16);
+            // ============================================
+            // MARBLE PEDESTAL (cylindrical, smooth, beveled)
+            // ============================================
             const pedestalMat = new THREE.MeshStandardMaterial({
-                color: 0xD9CEB8,
-                roughness: 0.6,
-                metalness: 0.2
+                color: 0xF8F5F0, // Warm white marble
+                roughness: 0.25,
+                metalness: 0.05,
+                envMapIntensity: 0.8
             });
+
+            // Main pedestal cylinder
+            const pedestalGeo = new THREE.CylinderGeometry(0.7, 0.75, 0.5, 32);
             const pedestal = new THREE.Mesh(pedestalGeo, pedestalMat);
-            pedestal.position.y = 0.15;
+            pedestal.position.y = 0.25;
             pedestal.castShadow = true;
             pedestal.receiveShadow = true;
             sculptureGroup.add(pedestal);
 
-            const columnGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.2, 16);
-            const column = new THREE.Mesh(columnGeo, pedestalMat);
-            column.position.y = 0.9;
-            column.castShadow = true;
-            column.receiveShadow = true;
-            sculptureGroup.add(column);
+            // Beveled top edge
+            const bevelGeo = new THREE.CylinderGeometry(0.72, 0.7, 0.05, 32);
+            const bevel = new THREE.Mesh(bevelGeo, pedestalMat);
+            bevel.position.y = 0.525;
+            sculptureGroup.add(bevel);
 
-            const platformGeo = new THREE.CylinderGeometry(0.6, 0.5, 0.15, 16);
+            // Statue platform (slightly smaller)
+            const platformGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 32);
             const platform = new THREE.Mesh(platformGeo, pedestalMat);
-            platform.position.y = 1.575;
+            platform.position.y = 0.6;
             platform.castShadow = true;
             platform.receiveShadow = true;
             sculptureGroup.add(platform);
 
-            const sculptureMat = new THREE.MeshStandardMaterial({
-                color: 0xF5F5F0,
-                roughness: 0.3,
-                metalness: 0.1
+            // ============================================
+            // MARBLE MATERIAL (polished white with veins)
+            // ============================================
+            const marbleMat = new THREE.MeshStandardMaterial({
+                color: 0xFFFBF7, // Pure white marble
+                roughness: 0.2,
+                metalness: 0.02,
+                envMapIntensity: 1.2,
+                side: THREE.DoubleSide
             });
 
-            const bodyGeo = new THREE.CylinderGeometry(0.15, 0.18, 0.8, 12);
-            const body = new THREE.Mesh(bodyGeo, sculptureMat);
-            body.position.y = 2.05;
-            body.castShadow = true;
-            sculptureGroup.add(body);
+            // Create figure base at y = 0.65 (on top of platform)
+            const figureBase = new THREE.Group();
+            figureBase.position.y = 0.65;
 
-            const headGeo = new THREE.SphereGeometry(0.2, 16, 16);
-            const head = new THREE.Mesh(headGeo, sculptureMat);
-            head.position.y = 2.6;
-            head.castShadow = true;
-            sculptureGroup.add(head);
+            // ============================================
+            // LOWER BODY & LEGS (contrapposto pose)
+            // ============================================
 
-            const armGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.5, 10);
-            const leftArm = new THREE.Mesh(armGeo, sculptureMat);
-            leftArm.position.set(-0.25, 2.1, 0);
-            leftArm.rotation.z = Math.PI / 4;
-            leftArm.castShadow = true;
-            sculptureGroup.add(leftArm);
+            // Right leg (weight-bearing, straight) - using LatheGeometry for organic shape
+            const rightLegPoints = [];
+            for (let i = 0; i <= 20; i++) {
+                const t = i / 20;
+                const y = t * 0.9;
+                const radius = 0.08 + Math.sin(t * Math.PI) * 0.03; // Varies for calf muscle
+                rightLegPoints.push(new THREE.Vector2(radius, y));
+            }
+            const rightLegGeo = new THREE.LatheGeometry(rightLegPoints, 16);
+            const rightLeg = new THREE.Mesh(rightLegGeo, marbleMat);
+            rightLeg.position.set(0.08, 0, 0);
+            rightLeg.castShadow = true;
+            figureBase.add(rightLeg);
 
-            const rightArm = new THREE.Mesh(armGeo, sculptureMat);
-            rightArm.position.set(0.25, 2.1, 0);
-            rightArm.rotation.z = -Math.PI / 4;
-            rightArm.castShadow = true;
-            sculptureGroup.add(rightArm);
+            // Left leg (relaxed, slightly bent) - positioned back and to side
+            const leftLegGeo = new THREE.LatheGeometry(rightLegPoints, 16);
+            const leftLeg = new THREE.Mesh(leftLegGeo, marbleMat);
+            leftLeg.position.set(-0.12, 0, -0.05);
+            leftLeg.rotation.z = 0.1; // Slight bend
+            leftLeg.castShadow = true;
+            figureBase.add(leftLeg);
 
-            const sculptureLight = new THREE.SpotLight(0xFFF4E0, 1.0, 10, Math.PI / 6, 0.5);
-            sculptureLight.position.set(0, 4.2, 9); // Adjusted for sculpture at z=13
-            sculptureLight.target = sculptureGroup;
-            sculptureLight.visible = false;
-            sculptureLight.castShadow = true;
-            corridorGroup.push(sculptureLight);
-            scene.add(sculptureLight);
+            // ============================================
+            // DRAPED CLOTH (hips and lower torso)
+            // ============================================
+
+            // Main drape wrapped around hips
+            const drapeGeo = new THREE.CylinderGeometry(0.22, 0.18, 0.4, 24, 1);
+            const drape = new THREE.Mesh(drapeGeo, marbleMat);
+            drape.position.y = 1.0;
+            drape.castShadow = true;
+
+            // Add vertices displacement for cloth folds
+            const drapePositions = drape.geometry.attributes.position;
+            for (let i = 0; i < drapePositions.count; i++) {
+                const x = drapePositions.getX(i);
+                const y = drapePositions.getY(i);
+                const z = drapePositions.getZ(i);
+                const angle = Math.atan2(z, x);
+                const wave = Math.sin(angle * 6) * 0.015; // Vertical folds
+                drapePositions.setX(i, x + wave);
+                drapePositions.setZ(i, z + wave);
+            }
+            drapePositions.needsUpdate = true;
+            drape.geometry.computeVertexNormals();
+            figureBase.add(drape);
+
+            // Asymmetric cloth fold falling to left side
+            const foldGeo = new THREE.ConeGeometry(0.12, 0.35, 16);
+            const fold = new THREE.Mesh(foldGeo, marbleMat);
+            fold.position.set(-0.2, 0.85, 0.05);
+            fold.rotation.z = 0.4;
+            fold.castShadow = true;
+            figureBase.add(fold);
+
+            // Cloth gather at waist (belt line)
+            const beltGeo = new THREE.TorusGeometry(0.19, 0.02, 12, 24);
+            const belt = new THREE.Mesh(beltGeo, marbleMat);
+            belt.position.y = 1.2;
+            belt.rotation.x = Math.PI / 2;
+            figureBase.add(belt);
+
+            // ============================================
+            // TORSO (twisted, classical female form)
+            // ============================================
+
+            // Lower torso (wider at hips)
+            const lowerTorsoGeo = new THREE.CylinderGeometry(0.16, 0.19, 0.25, 24);
+            const lowerTorso = new THREE.Mesh(lowerTorsoGeo, marbleMat);
+            lowerTorso.position.y = 1.33;
+            lowerTorso.rotation.y = 0.15; // Subtle twist
+            lowerTorso.castShadow = true;
+            figureBase.add(lowerTorso);
+
+            // Mid torso (narrower at waist)
+            const midTorsoGeo = new THREE.CylinderGeometry(0.14, 0.16, 0.2, 24);
+            const midTorso = new THREE.Mesh(midTorsoGeo, marbleMat);
+            midTorso.position.y = 1.55;
+            midTorso.rotation.y = 0.1;
+            midTorso.castShadow = true;
+            figureBase.add(midTorso);
+
+            // Upper torso/chest (broader)
+            const upperTorsoGeo = new THREE.SphereGeometry(0.17, 24, 24, 0, Math.PI * 2, 0, Math.PI / 2);
+            const upperTorso = new THREE.Mesh(upperTorsoGeo, marbleMat);
+            upperTorso.position.y = 1.68;
+            upperTorso.rotation.x = Math.PI;
+            upperTorso.castShadow = true;
+            figureBase.add(upperTorso);
+
+            // ============================================
+            // SHOULDERS & NECK
+            // ============================================
+
+            // Shoulders
+            const shoulderGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.35, 16);
+            const shoulders = new THREE.Mesh(shoulderGeo, marbleMat);
+            shoulders.position.y = 1.78;
+            shoulders.rotation.z = Math.PI / 2;
+            shoulders.castShadow = true;
+            figureBase.add(shoulders);
+
+            // Neck
+            const neckGeo = new THREE.CylinderGeometry(0.06, 0.07, 0.15, 16);
+            const neck = new THREE.Mesh(neckGeo, marbleMat);
+            neck.position.y = 1.93;
+            neck.castShadow = true;
+            figureBase.add(neck);
+
+            // ============================================
+            // HEAD (tilted, with facial features)
+            // ============================================
+
+            const headGroup = new THREE.Group();
+            headGroup.position.y = 2.08;
+            headGroup.rotation.z = -0.12; // Slight tilt
+            headGroup.rotation.y = 0.2; // Looking slightly to the right
+
+            // Cranium
+            const craniumGeo = new THREE.SphereGeometry(0.13, 32, 32);
+            const cranium = new THREE.Mesh(craniumGeo, marbleMat);
+            cranium.scale.set(1, 1.1, 0.95); // Slightly elongated
+            cranium.castShadow = true;
+            headGroup.add(cranium);
+
+            // Face (front of head)
+            const faceGeo = new THREE.SphereGeometry(0.12, 32, 32, 0, Math.PI / 2);
+            const face = new THREE.Mesh(faceGeo, marbleMat);
+            face.position.z = 0.06;
+            face.rotation.y = -Math.PI / 4;
+            headGroup.add(face);
+
+            // Nose (small protrusion)
+            const noseGeo = new THREE.ConeGeometry(0.015, 0.04, 8);
+            const nose = new THREE.Mesh(noseGeo, marbleMat);
+            nose.position.set(0, 0.01, 0.13);
+            nose.rotation.x = Math.PI / 2;
+            headGroup.add(nose);
+
+            // Hair (wavy Greek-style locks)
+            const hairGeo = new THREE.SphereGeometry(0.135, 24, 24);
+            const hair = new THREE.Mesh(hairGeo, marbleMat);
+            hair.scale.set(1, 1.05, 1);
+            hair.position.y = 0.02;
+
+            // Add wave texture to hair
+            const hairPositions = hair.geometry.attributes.position;
+            for (let i = 0; i < hairPositions.count; i++) {
+                const x = hairPositions.getX(i);
+                const y = hairPositions.getY(i);
+                const z = hairPositions.getZ(i);
+                const wave = Math.sin(y * 15) * Math.cos(x * 10) * 0.008;
+                hairPositions.setX(i, x + wave);
+                hairPositions.setZ(i, z + wave);
+            }
+            hairPositions.needsUpdate = true;
+            hair.geometry.computeVertexNormals();
+            headGroup.add(hair);
+
+            // Hair bun at back
+            const bunGeo = new THREE.SphereGeometry(0.08, 16, 16);
+            const bun = new THREE.Mesh(bunGeo, marbleMat);
+            bun.position.set(0, 0.04, -0.1);
+            headGroup.add(bun);
+
+            figureBase.add(headGroup);
+
+            // ============================================
+            // ARMS
+            // ============================================
+
+            // LEFT ARM (broken at mid-upper arm, like Venus de Milo)
+            const leftUpperArmGeo = new THREE.CylinderGeometry(0.045, 0.05, 0.22, 16);
+            const leftUpperArm = new THREE.Mesh(leftUpperArmGeo, marbleMat);
+            leftUpperArm.position.set(-0.2, 1.65, 0);
+            leftUpperArm.rotation.z = 0.5;
+            leftUpperArm.castShadow = true;
+            figureBase.add(leftUpperArm);
+
+            // Broken edge (irregular sphere to show fracture)
+            const breakGeo = new THREE.SphereGeometry(0.048, 12, 12);
+            const breakEdge = new THREE.Mesh(breakGeo, marbleMat);
+            breakEdge.position.set(-0.27, 1.55, 0);
+            breakEdge.scale.set(1, 0.6, 1);
+            figureBase.add(breakEdge);
+
+            // RIGHT ARM (intact, lowered gracefully)
+            const rightUpperArmGeo = new THREE.CylinderGeometry(0.04, 0.048, 0.25, 16);
+            const rightUpperArm = new THREE.Mesh(rightUpperArmGeo, marbleMat);
+            rightUpperArm.position.set(0.2, 1.63, 0.02);
+            rightUpperArm.rotation.z = -0.3;
+            rightUpperArm.castShadow = true;
+            figureBase.add(rightUpperArm);
+
+            // Right forearm
+            const rightForearmGeo = new THREE.CylinderGeometry(0.035, 0.04, 0.23, 16);
+            const rightForearm = new THREE.Mesh(rightForearmGeo, marbleMat);
+            rightForearm.position.set(0.29, 1.37, 0.05);
+            rightForearm.rotation.z = -0.5;
+            rightForearm.castShadow = true;
+            figureBase.add(rightForearm);
+
+            // Right hand (simplified)
+            const rightHandGeo = new THREE.SphereGeometry(0.04, 12, 12);
+            const rightHand = new THREE.Mesh(rightHandGeo, marbleMat);
+            rightHand.position.set(0.34, 1.18, 0.08);
+            rightHand.scale.set(0.8, 1.2, 0.7);
+            rightHand.castShadow = true;
+            figureBase.add(rightHand);
+
+            // ============================================
+            // SURFACE DETAILS (chips, wear)
+            // ============================================
+
+            // Small chip at base
+            const chipGeo = new THREE.SphereGeometry(0.03, 8, 8);
+            const chip = new THREE.Mesh(chipGeo, marbleMat);
+            chip.position.set(0.15, 0.05, 0.18);
+            chip.scale.set(0.5, 0.3, 0.4);
+            figureBase.add(chip);
+
+            sculptureGroup.add(figureBase);
+
+            // ============================================
+            // LIGHTING (soft key light from above + rim light)
+            // ============================================
+
+            // Key spotlight from above
+            const keyLight = new THREE.SpotLight(0xFFFBF7, 1.5, 12, Math.PI / 5, 0.3);
+            keyLight.position.set(0, 5, -28);
+            keyLight.target.position.set(0, 1.5, -28);
+            keyLight.visible = false;
+            keyLight.castShadow = true;
+            keyLight.shadow.bias = -0.001;
+            corridorGroup.push(keyLight);
+            corridorGroup.push(keyLight.target);
+            scene.add(keyLight);
+            scene.add(keyLight.target);
+
+            // Rim light behind (subtle glow for silhouette)
+            const rimLight = new THREE.PointLight(0xE8E4F0, 0.6, 8);
+            rimLight.position.set(0, 2.5, -29);
+            rimLight.visible = false;
+            corridorGroup.push(rimLight);
+            scene.add(rimLight);
+
+            // Ambient fill light for shadows
+            const fillLight = new THREE.PointLight(0xFFF8F0, 0.4, 10);
+            fillLight.position.set(1.5, 3, -26.5);
+            fillLight.visible = false;
+            corridorGroup.push(fillLight);
+            scene.add(fillLight);
 
             corridorGroup.push(sculptureGroup);
             scene.add(sculptureGroup);
+
+            console.log('✅ Classical marble sculpture created');
         }
 
         // ============================================
