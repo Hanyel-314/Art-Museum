@@ -388,10 +388,10 @@ function createCorridorScene() {
     const corridorLength = 20; // Shorter, enclosed space
     const corridorWidth = 12; // Wider corridor
 
-    // Pure solid color floor - completely flat, no lighting effects
+    // Pure black floor - completely flat, no lighting effects
     const floorGeo = new THREE.PlaneGeometry(corridorWidth, corridorLength);
     const floorMat = new THREE.MeshBasicMaterial({
-        color: 0xE8E0D0 // Pure solid color - unaffected by lighting
+        color: 0x000000 // Pure black color - unaffected by lighting
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
