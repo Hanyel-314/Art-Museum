@@ -615,6 +615,25 @@
         const detailDescription = document.getElementById('detail-description');
 
         // ============================================
+        // FIXED CAMERA VIEWS
+        // ============================================
+        // Define explicit camera views to prevent rotation overshoot
+        const CAMERA_VIEWS = {
+            CORRIDOR: {
+                position: new THREE.Vector3(0, 1.7, -2),
+                lookAt: new THREE.Vector3(0, 2, -15)
+            },
+            LEFT_WALL: {
+                position: new THREE.Vector3(0, 2, -10),
+                lookAt: new THREE.Vector3(-10, 2, -10)
+            },
+            RIGHT_WALL: {
+                position: new THREE.Vector3(0, 2, -10),
+                lookAt: new THREE.Vector3(10, 2, -10)
+            }
+        };
+
+        // ============================================
         // ARTWORK DATA
         // ============================================
 
@@ -2173,18 +2192,12 @@
             wallHintLeft.classList.add('hidden');
             wallHintRight.classList.add('hidden');
 
-            // Position camera in middle of corridor, facing the wall
-            // Paintings are at z = -5, -10, -15, so center at z = -10
-            // Camera stays in center of room width, clear view of wall
-            const targetAngle = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
-            const targetPos = new THREE.Vector3(0, 2, -10); // Middle of corridor, painting height
+            // Use fixed camera view for the selected wall
+            const targetView = side === 'left' ? CAMERA_VIEWS.LEFT_WALL : CAMERA_VIEWS.RIGHT_WALL;
 
-            animateCamera(
-                camera.position.clone(),
-                targetPos,
-                camera.rotation.clone(),
-                new THREE.Euler(0, targetAngle, 0),
-                1200, // Slower transition for smoothness
+            animateCameraToView(
+                targetView,
+                1000, // 1 second smooth transition
                 () => {
                     currentView = side === 'left' ? 'WALL_LEFT' : 'WALL_RIGHT';
                     isAnimating = false;
@@ -2454,23 +2467,10 @@
             } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
                 isAnimating = true;
 
-                // Calculate target rotation for looking down the corridor
-                // From position (0, 1.7, -2) looking at (0, 2, -15)
-                const targetPos = new THREE.Vector3(0, 1.7, -2);
-                const lookAtPoint = new THREE.Vector3(0, 2, -15);
-                const direction = new THREE.Vector3().subVectors(lookAtPoint, targetPos).normalize();
-
-                // Calculate the rotation needed to look at the target point
-                const targetRotY = Math.atan2(direction.x, direction.z);
-                const targetRotX = Math.asin(-direction.y);
-
-                // Smooth transition back to corridor entrance
-                animateCamera(
-                    camera.position.clone(),
-                    targetPos,
-                    camera.rotation.clone(),
-                    new THREE.Euler(targetRotX, targetRotY, 0),
-                    1000, // 1 second for smooth transition
+                // Use fixed corridor view - prevents rotation overshoot
+                animateCameraToView(
+                    CAMERA_VIEWS.CORRIDOR,
+                    1000, // 1 second smooth transition
                     () => {
                         currentView = 'CORRIDOR';
                         isAnimating = false;
@@ -2489,24 +2489,48 @@
         // CAMERA ANIMATION
         // ============================================
 
-        function animateCamera(fromPos, toPos, fromRot, toRot, duration, callback) {
+        /**
+         * Animate camera to a target view using lookAt interpolation
+         * @param {Object} targetView - Object with {position: Vector3, lookAt: Vector3}
+         * @param {number} duration - Animation duration in milliseconds
+         * @param {Function} callback - Called when animation completes
+         */
+        function animateCameraToView(targetView, duration, callback) {
             const startTime = Date.now();
-            const startPos = fromPos.clone();
-            const startRot = fromRot.clone();
+            const startPos = camera.position.clone();
+
+            // Calculate current lookAt point from camera's direction
+            const cameraDirection = new THREE.Vector3();
+            camera.getWorldDirection(cameraDirection);
+            const currentLookAt = startPos.clone().add(cameraDirection.multiplyScalar(10));
+
+            const startLookAt = currentLookAt.clone();
+            const targetPos = targetView.position.clone();
+            const targetLookAt = targetView.lookAt.clone();
 
             function updateCamera() {
                 const elapsed = Date.now() - startTime;
-                const t = Math.min(elapsed / duration, 1);
+                let t = elapsed / duration;
+
+                // Clamp t between 0 and 1 to prevent overshoot
+                t = Math.max(0, Math.min(1, t));
+
                 const eased = easeInOutCubic(t);
 
-                camera.position.lerpVectors(startPos, toPos, eased);
-                camera.rotation.x = THREE.MathUtils.lerp(startRot.x, toRot.x, eased);
-                camera.rotation.y = THREE.MathUtils.lerp(startRot.y, toRot.y, eased);
-                camera.rotation.z = THREE.MathUtils.lerp(startRot.z, toRot.z, eased);
+                // Interpolate position
+                camera.position.lerpVectors(startPos, targetPos, eased);
+
+                // Interpolate lookAt target
+                const currentLookAtTarget = new THREE.Vector3().lerpVectors(startLookAt, targetLookAt, eased);
+                camera.lookAt(currentLookAtTarget);
 
                 if (t < 1) {
                     requestAnimationFrame(updateCamera);
                 } else {
+                    // Snap to exact final position and orientation
+                    camera.position.copy(targetPos);
+                    camera.lookAt(targetLookAt);
+
                     if (callback) callback();
                 }
             }
