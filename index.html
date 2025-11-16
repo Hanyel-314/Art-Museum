@@ -1581,10 +1581,15 @@
 
             // Define decorative frames with SAME dimensions as main paintings
             // Continuing the evenly-spaced pattern: z = -20, -25, -30 (5 units apart)
-            const decorativeFrames = [
-                { z: -20, title: "Landscape I", color: 0x9B8B7E },
-                { z: -25, title: "Portrait II", color: 0xA89080 },
-                { z: -30, title: "Still Life III", color: 0x8E7E6F }
+            // REPLACED: First two frames on each side with uploaded masterpieces
+            const decorativeFrames = side === 'left' ? [
+                { z: -20, title: "Water Lilies", image: "睡莲.jpg" },
+                { z: -25, title: "The Persistence of Memory", image: "记忆的永恒.jpg" },
+                { z: -30, title: "Still Life III", color: 0x8E7E6F } // Keep original
+            ] : [
+                { z: -20, title: "Guernica", image: "格尔尼卡.jpg" },
+                { z: -25, title: "Bal du moulin de la Galette", image: "红磨坊的舞会.jpg" },
+                { z: -30, title: "Still Life III", color: 0x8E7E6F } // Keep original
             ];
 
             decorativeFrames.forEach((config) => {
@@ -1597,11 +1602,33 @@
                 // Canvas - SAME SIZE as main paintings (2.2 × 2.2)
                 const canvasGeo = new THREE.PlaneGeometry(2.2, 2.2);
                 const canvasMat = new THREE.MeshStandardMaterial({
-                    color: config.color,
+                    color: config.image ? 0xFFFFFF : config.color, // White for images, color for placeholders
                     roughness: 0.7,
                     metalness: 0
-                    // NO transparency - fully opaque so wooden bars can't be seen through
                 });
+
+                // Load real artwork image if available (for replaced frames)
+                if (config.image) {
+                    const textureLoader = new THREE.TextureLoader();
+                    textureLoader.load(
+                        config.image,
+                        (texture) => {
+                            // Apply the texture to fill the canvas
+                            canvasMat.map = texture;
+                            canvasMat.color.setHex(0xFFFFFF); // Ensure no color tinting
+                            canvasMat.needsUpdate = true;
+                            console.log(`✅ Loaded decorative painting: ${config.image}`);
+                        },
+                        undefined,
+                        (error) => {
+                            // Error callback - show placeholder
+                            console.warn(`⚠️ Failed to load decorative image: ${config.image}`, error);
+                            canvasMat.color.setHex(0xE8E0D5); // Light beige placeholder if load fails
+                            canvasMat.needsUpdate = true;
+                        }
+                    );
+                }
+
                 const canvas = new THREE.Mesh(canvasGeo, canvasMat);
                 canvas.position.z = 0.03;
                 frameGroup.add(canvas);
