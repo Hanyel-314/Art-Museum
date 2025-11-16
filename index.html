@@ -2450,20 +2450,30 @@
             } else if (currentView === 'WALL_LEFT' || currentView === 'WALL_RIGHT') {
                 isAnimating = true;
 
+                // Calculate target rotation for looking down the corridor
+                // From position (0, 1.7, -2) looking at (0, 2, -15)
+                const targetPos = new THREE.Vector3(0, 1.7, -2);
+                const lookAtPoint = new THREE.Vector3(0, 2, -15);
+                const direction = new THREE.Vector3().subVectors(lookAtPoint, targetPos).normalize();
+
+                // Calculate the rotation needed to look at the target point
+                const targetRotY = Math.atan2(direction.x, direction.z);
+                const targetRotX = Math.asin(-direction.y);
+
                 // Smooth transition back to corridor entrance
                 animateCamera(
                     camera.position.clone(),
-                    new THREE.Vector3(0, 1.7, -2), // Return to entrance position
+                    targetPos,
                     camera.rotation.clone(),
-                    new THREE.Euler(0, 0, 0),
-                    1400, // Longer duration for smoother transition
+                    new THREE.Euler(targetRotX, targetRotY, 0),
+                    1000, // 1 second for smooth transition
                     () => {
                         currentView = 'CORRIDOR';
                         isAnimating = false;
-                        backBtn.classList.add('hidden'); // Hide exit button
+                        backBtn.classList.add('hidden');
                         wallHintLeft.classList.remove('hidden');
                         wallHintRight.classList.remove('hidden');
-                        camera.lookAt(0, 2, -15); // Look down corridor
+                        console.log('✅ Back to corridor view');
                     }
                 );
 
