@@ -2116,24 +2116,26 @@
         }
 
         function createWhiteLightTransition() {
-            // White overlay for portal effect
+            // White overlay for portal effect - elegant fade in and out
             const whiteFade = document.createElement('div');
             whiteFade.style.position = 'fixed';
             whiteFade.style.top = '0';
             whiteFade.style.left = '0';
             whiteFade.style.width = '100%';
             whiteFade.style.height = '100%';
-            whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
+            whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.98) 100%)';
             whiteFade.style.opacity = '0';
-            whiteFade.style.transition = 'opacity 0.8s ease-in';
+            whiteFade.style.transition = 'opacity 0.9s ease-in';
             whiteFade.style.zIndex = '999';
             whiteFade.style.pointerEvents = 'none';
             document.body.appendChild(whiteFade);
 
+            // Phase 1: Fade to white (0.9s)
             setTimeout(() => {
                 whiteFade.style.opacity = '1';
             }, 50);
 
+            // Phase 2: Switch scene at peak brightness (after fade-in completes)
             setTimeout(() => {
                 entranceDoor.visible = false;
                 scene.background = new THREE.Color(0xFAF8F3);
@@ -2143,13 +2145,15 @@
                 camera.position.set(0, 1.7, -2); // Near entrance, looking down corridor
                 camera.rotation.set(0, 0, 0);
                 camera.lookAt(0, 2, -15); // Look toward far end of corridor
-            }, 800);
+            }, 950); // Switch scene when white is at peak
 
+            // Phase 3: Fade out from white, revealing corridor (1.2s smooth fade-out)
             setTimeout(() => {
-                whiteFade.style.transition = 'opacity 1s ease-out';
+                whiteFade.style.transition = 'opacity 1.2s ease-out';
                 whiteFade.style.opacity = '0';
-            }, 1000);
+            }, 1100); // Short hold at peak brightness, then fade out
 
+            // Phase 4: Cleanup and finalize
             setTimeout(() => {
                 document.body.removeChild(whiteFade);
                 currentView = 'CORRIDOR';
@@ -2157,8 +2161,8 @@
                 backBtn.classList.add('hidden'); // Hide exit button
                 wallHintLeft.classList.remove('hidden');
                 wallHintRight.classList.remove('hidden');
-                console.log('✅ Inside corridor');
-            }, 2000);
+                console.log('✅ Inside corridor - emerged from white light');
+            }, 2400); // Total: 950 + 1100 + 350ms buffer
         }
 
         function viewWall(side) {
