@@ -100,6 +100,29 @@
         }
 
         /* ============================================
+           PORTAL LIGHT OVERLAY
+           ============================================ */
+        #portal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 998;
+            opacity: 0;
+            background: radial-gradient(circle at 50% 50%,
+                rgba(255, 252, 245, 1) 0%,
+                rgba(255, 252, 245, 0.98) 10%,
+                rgba(255, 252, 245, 0.95) 20%,
+                rgba(255, 252, 245, 0) 30%);
+            background-size: 0% 0%;
+            background-position: center center;
+            background-repeat: no-repeat;
+            transition: none;
+        }
+
+        /* ============================================
            UI OVERLAY
            ============================================ */
         #ui-overlay {
@@ -339,6 +362,9 @@
 
     <!-- Main Canvas -->
     <canvas id="museum-canvas"></canvas>
+
+    <!-- Portal Light Overlay -->
+    <div id="portal-overlay"></div>
 
     <!-- UI Overlay -->
     <div id="ui-overlay">
@@ -1178,72 +1204,130 @@
 
             tooltip.classList.add('hidden');
 
-            // Animate doors opening OUTWARD
-            const duration = 1500;
+            const portalOverlay = document.getElementById('portal-overlay');
+
+            // Timeline:
+            // t=0.0s: Doors start opening, light starts appearing inside doorway
+            // t=0.8s: Doors fully open, light fills entire screen (white)
+            // t=0.9s: Switch scene (while white)
+            // t=1.0s: Start fading out white overlay
+            // t=2.0s: Corridor fully revealed, animation complete
+
+            const doorDuration = 800; // Doors open in 0.8s
             const startTime = Date.now();
 
-            function animateDoorOpen() {
+            // Simultaneously animate doors AND light
+            function animateDoorAndLight() {
                 const elapsed = Date.now() - startTime;
-                const t = Math.min(elapsed / duration, 1);
+                const t = Math.min(elapsed / doorDuration, 1);
                 const eased = easeInOutCubic(t);
 
+                // Animate doors opening OUTWARD
                 leftDoorPanel.rotation.y = -eased * (Math.PI / 2.5);
                 rightDoorPanel.rotation.y = eased * (Math.PI / 2.5);
 
-                if (t < 1) {
-                    requestAnimationFrame(animateDoorOpen);
+                // Animate light expanding from doorway
+                // Phase 1 (0.0 - 0.5): Light appears inside door frame, starts to expand
+                // Phase 2 (0.5 - 1.0): Light expands outward to fill entire screen
+                if (t <= 0.5) {
+                    // Early phase: light is just beginning to appear
+                    const earlyT = t * 2; // 0 to 1 over first half
+                    portalOverlay.style.opacity = earlyT * 0.3; // Subtle at first
+                    portalOverlay.style.backgroundSize = `${earlyT * 100}% ${earlyT * 100}%`;
                 } else {
-                    createWhiteLightTransition();
+                    // Late phase: light rapidly expands and intensifies
+                    const lateT = (t - 0.5) * 2; // 0 to 1 over second half
+                    const intensity = 0.3 + (lateT * 0.7); // 0.3 to 1.0
+                    const size = 100 + (lateT * 300); // 100% to 400% (full screen)
+                    portalOverlay.style.opacity = intensity;
+                    portalOverlay.style.backgroundSize = `${size}% ${size}%`;
+                }
+
+                if (t < 1) {
+                    requestAnimationFrame(animateDoorAndLight);
+                } else {
+                    // Doors are fully open, light has filled the screen
+                    // Ensure fully white
+                    portalOverlay.style.opacity = '1';
+                    portalOverlay.style.backgroundSize = '400% 400%';
+
+                    // Brief pause while white, then switch scene
+                    setTimeout(() => {
+                        switchToCorridorScene();
+                        fadeInCorridor();
+                    }, 100);
                 }
             }
 
-            animateDoorOpen();
+            animateDoorAndLight();
         }
 
-        function createWhiteLightTransition() {
-            // White overlay for portal effect
-            const whiteFade = document.createElement('div');
-            whiteFade.style.position = 'fixed';
-            whiteFade.style.top = '0';
-            whiteFade.style.left = '0';
-            whiteFade.style.width = '100%';
-            whiteFade.style.height = '100%';
-            whiteFade.style.background = 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%)';
-            whiteFade.style.opacity = '0';
-            whiteFade.style.transition = 'opacity 0.8s ease-in';
-            whiteFade.style.zIndex = '999';
-            whiteFade.style.pointerEvents = 'none';
-            document.body.appendChild(whiteFade);
+        function switchToCorridorScene() {
+            // Switch scene while screen is fully white (camera repositioning is hidden)
+            entranceDoor.visible = false;
+            scene.background = new THREE.Color(0xFAF8F3);
+            scene.fog = new THREE.Fog(0xFAF8F3, 15, 35);
 
-            setTimeout(() => {
-                whiteFade.style.opacity = '1';
-            }, 50);
+            // Make corridor visible but start with low opacity for fade-in
+            corridorGroup.forEach(obj => {
+                obj.visible = true;
+                // Optionally reduce initial intensity for smoother appearance
+                if (obj.material) {
+                    if (Array.isArray(obj.material)) {
+                        obj.material.forEach(mat => {
+                            if (!mat.userData.originalOpacity) {
+                                mat.userData.originalOpacity = mat.opacity !== undefined ? mat.opacity : 1.0;
+                            }
+                        });
+                    } else {
+                        if (!obj.material.userData.originalOpacity) {
+                            obj.material.userData.originalOpacity = obj.material.opacity !== undefined ? obj.material.opacity : 1.0;
+                        }
+                    }
+                }
+            });
 
-            setTimeout(() => {
-                entranceDoor.visible = false;
-                scene.background = new THREE.Color(0xFAF8F3);
-                scene.fog = new THREE.Fog(0xFAF8F3, 15, 35); // Adjusted for 30m corridor
-                corridorGroup.forEach(obj => obj.visible = true);
+            // Reposition camera (hidden behind white overlay)
+            camera.position.set(0, 1.7, -2);
+            camera.rotation.set(0, 0, 0);
+            camera.lookAt(0, 2, -15);
 
-                camera.position.set(0, 1.7, -2); // Near entrance, looking down corridor
-                camera.rotation.set(0, 0, 0);
-                camera.lookAt(0, 2, -15); // Look toward far end of corridor
-            }, 800);
+            console.log('🔄 Scene switched to corridor (behind white overlay)');
+        }
 
-            setTimeout(() => {
-                whiteFade.style.transition = 'opacity 1s ease-out';
-                whiteFade.style.opacity = '0';
-            }, 1000);
+        function fadeInCorridor() {
+            const portalOverlay = document.getElementById('portal-overlay');
 
-            setTimeout(() => {
-                document.body.removeChild(whiteFade);
-                currentView = 'CORRIDOR';
-                isAnimating = false;
-                backBtn.classList.add('hidden'); // Hide exit button
-                wallHintLeft.classList.remove('hidden');
-                wallHintRight.classList.remove('hidden');
-                console.log('✅ Inside corridor');
-            }, 2000);
+            // Fade out white overlay to reveal corridor
+            // Duration: 1.0 second for smooth revelation
+            const fadeDuration = 1000;
+            const startTime = Date.now();
+
+            function animateFadeOut() {
+                const elapsed = Date.now() - startTime;
+                const t = Math.min(elapsed / fadeDuration, 1);
+                const eased = easeInOutCubic(t);
+
+                // Fade overlay opacity from 1.0 to 0.0
+                portalOverlay.style.opacity = 1.0 - eased;
+
+                if (t < 1) {
+                    requestAnimationFrame(animateFadeOut);
+                } else {
+                    // Fade complete - reset overlay for future use
+                    portalOverlay.style.opacity = '0';
+                    portalOverlay.style.backgroundSize = '0% 0%';
+
+                    currentView = 'CORRIDOR';
+                    isAnimating = false;
+                    backBtn.classList.add('hidden'); // Hide exit button
+                    wallHintLeft.classList.remove('hidden');
+                    wallHintRight.classList.remove('hidden');
+                    console.log('✅ Inside corridor - transition complete');
+                }
+            }
+
+            animateFadeOut();
         }
 
         function viewWall(side) {
